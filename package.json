@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/mrkickling/spotify-api-node-app/issues"
   },
-  "homepage": "https://github.com/mrkickling/spotify-api-node-app#readme"
+  "homepage": "https://github.com/mrkickling/spotify-api-node-app#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
 }
