@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/mrkickling/spotify-api-node-app#readme",
   "dependencies": {
+    "dotenv": "^6.2.0",
     "express": "^4.16.4"
   }
 }
