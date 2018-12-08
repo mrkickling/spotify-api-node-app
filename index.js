@@ -1,53 +1,51 @@
 // Imports
-var helperFunctions = require("./helperFunctions.js");
-import {User} from "./userHandler.js";
+var UserHandler = require("./userHandler.js");
 require('dotenv').config();
+
 const express = require('express');
-const app = express();
+const path = require('path');
 const port = process.env.PORT;
 const querystring = require('querystring');
 var session = require('express-session');
-var users = [];
+var hbs = require('express-handlebars');
+var SpotifyWebApi = require('spotify-web-api-node');
 
+// Store users and queues in these arrays
+var users = [];
+var queues = [];
+
+const app = express();
+// Session settings for server
 app.use(session({
   secret: process.env.SESSION_SECRET,
   cookie: { maxAge: false },
   resave: false,
   saveUninitialized: true
 }))
+// View engine settings for server
+app.set('view engine', '.hbs');
+app.engine('.hbs', hbs({
+  extname: '.hbs',
+  layoutsDir: path.join(__dirname, 'views')
+}));
 
+// Other settings for server
 app.use(express.static('public'));
-app.get("/", function (request, response) {
-  response.sendFile(__dirname + '/views/index.html');
-});
-
-// Initialize Spotify API wrapper
-var SpotifyWebApi = require('spotify-web-api-node');
-var REDIRECT_URI = "http://localhost:3000/callback";
-
-// The object we'll use to interact with the API
-var spotifyApi = new SpotifyWebApi({
-  clientId : process.env.CLIENT_ID,
-  clientSecret : process.env.CLIENT_SECRET
-});
-
-// Using the Client Credentials auth flow, authenticate our app
-spotifyApi.clientCredentialsGrant()
-  .then(function(data) {
-
-    // Save the access token so that it's used in future calls
-    spotifyApi.setAccessToken(data.body['access_token']);
-    console.log('Got an access token: ' + spotifyApi.getAccessToken());
-
-  }, function(err) {
-    console.log('Something went wrong when retrieving an access token', err.message);
-  });
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: true
+}));
+app.set('views', __dirname + '/views')
 
 // API REQUESTS
+app.get("/", function (request, response) {
+  response.render('index', {});
+});
+
 app.get('/get_access', function (request, response) {
     // your application requests authorization
     if(!request.query.code){
-      var scope = 'user-read-private user-read-email user-read-recently-played user-read-currently-playing playlist-modify-public playlist-modify-private';
+      var scope = 'user-read-private user-read-email user-read-recently-played user-read-currently-playing playlist-modify-public playlist-modify-private user-top-read';
       response.redirect('https://accounts.spotify.com/authorize?' +
         querystring.stringify({
           response_type: 'code',
@@ -58,22 +56,66 @@ app.get('/get_access', function (request, response) {
         }));
     }else if(request.query.code){
       request.session.identifier = makeid();
-      new_user = new User(request.session.identifier);
+      new_user = new UserHandler(request.session.identifier);
+      new_user.initializeAPI(request.query.code);
       users[request.session.identifier] = new_user;
+      response.render('create-new-queue', {});
     }
 });
 
-app.get('/auth_callback', function (request, response) {
-  response.send(request.query.code);
+app.post('/create-queue', function (request, response) {
+  if(request.session.identifier){
+    let queue_identifier =
+    curr_user = users[request.session.identifier];
+    response.send(request.body['queue-name'] + request.body['queue-password']);
+  }else{
+    response.redirect("/");
+  }
 });
 
-app.get('/token_callback', function (request, response) {
-
+app.get('/get-my-info', function (request, response) {
+  if(request.session.identifier){
+    curr_user = users[request.session.identifier];
+    curr_user.spotifyApi.getMe()
+    .then(function(data) {
+      response.send(data.body);
+    }, function(err) {
+      response.send(err);
+    });
+  }else{
+    response.status(200).response.send("Not identified");
+  }
 });
 
-app.get('/my_top_tracks', function (request, response) {
-
+app.get('/party/:party_code', function (request, response) {
+  if(request.session.identifier){
+    curr_user = users[request.session.identifier];
+    curr_user.spotifyApi.getMe()
+    .then(function(data) {
+      response.send(data.body);
+    }, function(err) {
+      response.send(err);
+    });
+  }else{
+    response.status(200).response.send("Not identified");
+  }
 });
+
+
+app.get('/get-my-top-artists', function (request, response) {
+  if(request.session.identifier){
+    curr_user = users[request.session.identifier];
+    curr_user.spotifyApi.getMyTopArtists()
+    .then(function(data) {
+      response.send(data.body);
+    }, function(err) {
+      response.send(err);
+    });
+  }else{
+    response.status(400).response.send("You were not identified");
+  }
+});
+
 
 app.get('/get_code', function (request, response) {
   response.send(request.session.code);

@@ -1,5 +1,9 @@
+var SpotifyWebApi = require('spotify-web-api-node');
+var request = require('request');
+var REDIRECT_URI = "http://localhost:3000/get_access";
+
 // Initializing a class definition
-export class User {
+module.exports = class User {
 
   constructor(identifier) {
     this.identifier = identifier;
@@ -8,10 +12,11 @@ export class User {
 
   // Adding a method to the constructor
   initializeAPI(code) {
+    console.log("Got code " + code);
     var authOptions = {
       url: 'https://accounts.spotify.com/api/token',
       form: {
-        code: request.query.code,
+        code: code,
         redirect_uri: REDIRECT_URI,
         grant_type: 'authorization_code'
       },
@@ -30,8 +35,8 @@ export class User {
         this.spotifyApi.setRefreshToken(refresh_token);
       }
       else{
-        console.log("error: " + error);
+        console.log("error: " + error + response.statusCode);
       }
-    });
+    }.bind(this));
   }
 }
