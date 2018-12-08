@@ -6,6 +6,7 @@ const express = require('express');
 const path = require('path');
 const port = process.env.PORT;
 const querystring = require('querystring');
+const bcrypt = require('bcrypt');
 var session = require('express-session');
 var hbs = require('express-handlebars');
 var SpotifyWebApi = require('spotify-web-api-node');
@@ -37,6 +38,21 @@ app.use(express.urlencoded({
 }));
 app.set('views', __dirname + '/views')
 
+// The object we'll use to interact with the API
+var spotifyApi = new SpotifyWebApi({
+  clientId : process.env.CLIENT_ID,
+  clientSecret : process.env.CLIENT_SECRET
+});
+
+// Using the Client Credentials auth flow, authenticate our app
+spotifyApi.clientCredentialsGrant()
+  .then(function(data) {
+    // Save the access token so that it's used in future calls
+    spotifyApi.setAccessToken(data.body['access_token']);
+  }, function(err) {
+    console.log('Something went wrong when retrieving an access token', err.message);
+  });
+
 // API REQUESTS
 app.get("/", function (request, response) {
   response.render('index', {});
@@ -55,7 +71,7 @@ app.get('/get_access', function (request, response) {
           //state: state
         }));
     }else if(request.query.code){
-      request.session.identifier = makeid();
+      request.session.identifier = makeid(16);
       new_user = new UserHandler(request.session.identifier);
       new_user.initializeAPI(request.query.code);
       users[request.session.identifier] = new_user;
@@ -65,9 +81,19 @@ app.get('/get_access', function (request, response) {
 
 app.post('/create-queue', function (request, response) {
   if(request.session.identifier){
-    let queue_identifier =
-    curr_user = users[request.session.identifier];
-    response.send(request.body['queue-name'] + request.body['queue-password']);
+    let queue_identifier = makeid(6);
+    let curr_user = users[request.session.identifier];
+    let name = request.body['queue-name'];
+    let hash = bcrypt.hashSync(request.body['queue-password'], 10);
+
+    let new_queue = {};
+    new_queue.name = name;
+    new_user.password = hash;
+    new_user.admin = curr_user;
+
+    queues[queue_identifier] = new_queue;
+
+    response.redirect('party/' + queue_identifier);
   }else{
     response.redirect("/");
   }
@@ -88,19 +114,12 @@ app.get('/get-my-info', function (request, response) {
 });
 
 app.get('/party/:party_code', function (request, response) {
-  if(request.session.identifier){
-    curr_user = users[request.session.identifier];
-    curr_user.spotifyApi.getMe()
-    .then(function(data) {
-      response.send(data.body);
-    }, function(err) {
-      response.send(err);
-    });
-  }else{
-    response.status(200).response.send("Not identified");
+  let queue_identifier = request.params.party_code;
+  let queue = queues[queue_identifier];
+  if(queue){
+    response.render('party-queue', queue);
   }
 });
-
 
 app.get('/get-my-top-artists', function (request, response) {
   if(request.session.identifier){
@@ -117,19 +136,27 @@ app.get('/get-my-top-artists', function (request, response) {
 });
 
 
-app.get('/get_code', function (request, response) {
-  response.send(request.session.code);
+app.get('/search/:term', function (request, response) {
+  let term = request.params.term;
+  spotifyApi.searchTracks(term, {limit: 5}).then(
+    function(data) {
+      response.send(data.body);
+    },
+    function(err) {
+      console.log('Something went wrong!', err);
+    }
+  );
 });
 
 var listener = app.listen(port, function(){
   console.log(`Example app listening on port ${port}!`);
 });
 
-function makeid() {
+function makeid(length) {
   var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-  for (var i = 0; i < 16; i++)
+  for (var i = 0; i < length; i++)
     text += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return text;
