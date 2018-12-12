@@ -12,7 +12,6 @@ module.exports = class User {
 
   // Adding a method to the constructor
   initializeAPI(code) {
-    console.log("Got code " + code);
     var authOptions = {
       url: 'https://accounts.spotify.com/api/token',
       form: {

@@ -16,6 +16,9 @@ var users = [];
 var queues = [];
 
 const app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
 // Session settings for server
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -88,6 +91,7 @@ app.post('/create-queue', function (request, response) {
 
     let new_queue = {};
     new_queue.name = name;
+    new_queue.id = queue_identifier;
     new_user.password = hash;
     new_user.admin = curr_user;
 
@@ -99,20 +103,6 @@ app.post('/create-queue', function (request, response) {
   }
 });
 
-app.get('/get-my-info', function (request, response) {
-  if(request.session.identifier){
-    curr_user = users[request.session.identifier];
-    curr_user.spotifyApi.getMe()
-    .then(function(data) {
-      response.send(data.body);
-    }, function(err) {
-      response.send(err);
-    });
-  }else{
-    response.status(200).response.send("Not identified");
-  }
-});
-
 app.get('/party/:party_code', function (request, response) {
   let queue_identifier = request.params.party_code;
   let queue = queues[queue_identifier];
@@ -120,21 +110,6 @@ app.get('/party/:party_code', function (request, response) {
     response.render('party-queue', queue);
   }
 });
-
-app.get('/get-my-top-artists', function (request, response) {
-  if(request.session.identifier){
-    curr_user = users[request.session.identifier];
-    curr_user.spotifyApi.getMyTopArtists()
-    .then(function(data) {
-      response.send(data.body);
-    }, function(err) {
-      response.send(err);
-    });
-  }else{
-    response.status(400).response.send("You were not identified");
-  }
-});
-
 
 app.get('/search/:term', function (request, response) {
   let term = request.params.term;
@@ -146,11 +121,20 @@ app.get('/search/:term', function (request, response) {
       console.log('Something went wrong!', err);
     }
   );
+
 });
 
-var listener = app.listen(port, function(){
-  console.log(`Example app listening on port ${port}!`);
+http.listen(3000, function(){
+  console.log('listening on *:3000');
 });
+
+io.on('connection', function(socket){
+  console.log('a user connected');
+  socket.on('my queue', function(msg){
+    console.log('message: ' + msg);
+  });
+});
+
 
 function makeid(length) {
   var text = "";
@@ -158,6 +142,5 @@ function makeid(length) {
 
   for (var i = 0; i < length; i++)
     text += possible.charAt(Math.floor(Math.random() * possible.length));
-
   return text;
 }

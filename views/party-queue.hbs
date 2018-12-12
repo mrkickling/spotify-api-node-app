@@ -9,6 +9,7 @@
     <h2>{{{name}}}</h2>
     Add song to queue:
     <form class="" ng-submit="search()">
+      <input type="hidden" name="queue_id" id="queue_id" ng-model="queue_id" value="{{{id}}}">
       <input ng-focus="focus=true" ng-blur="focus=false" type="text" id="search-input" name="search-input" value="" ng-model="search_input">
     </form>
     <div id="search-results" ng-show="focus">
@@ -21,6 +22,8 @@
       {{name}}
     {{/each}}
   </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
   <script src="/js/search.js"></script>
+  <script src="/js/sockets.js"></script>
 </html>
