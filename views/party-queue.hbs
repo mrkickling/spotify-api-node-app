@@ -5,25 +5,36 @@
     <link rel="stylesheet" href="/css/style.css">
     <title></title>
   </head>
-  <body ng-app="spotifyApiApp" ng-controller="SearchController">
+  <body ng-app="spotifyApiApp" ng-controller="SearchController" ng-cloak>
     <h2>{{{name}}}</h2>
-    Add song to queue:
-    <form class="" ng-submit="search()">
-      <input type="hidden" name="queue_id" id="queue_id" ng-model="queue_id" value="{{{id}}}">
-      <input ng-focus="focus=true" ng-blur="focus=false" type="text" id="search-input" name="search-input" value="" ng-model="search_input">
-    </form>
-    <div id="search-results" ng-show="focus">
-      <div class="song" ng-repeat="song in search_results" ng-click="addSong(song)">
+
+    <div class="search-form">
+      Add song to queue:
+      <form class="" ng-submit="search()">
+        <input ng-focus="focus=true" type="text" id="search-input" name="search-input" value="" ng-model="search_input">
+      </form>
+      <div id="search-results" ng-show="focus && search_results.length>0">
+        <div class="song" ng-repeat="song in search_results">
+          <img ng-src="[[[ song.album.images[2].url ]]]" alt="">
+          [[[song.name]]] - [[[song.artists[0].name]]]
+          <button ng-click="addSong(song)" type="button" name="button">Add song</button>
+        </div>
+        <button type="button" name="button" ng-click="focus=false">Close dropdown</button>
+      </div>
+    </div>
+
+    <h2>Queue</h2>
+    <div id="song-queue">
+      <div class="song" ng-repeat="song in song_queue track by $index">
         <img ng-src="[[[ song.album.images[2].url ]]]" alt="">
         [[[song.name]]] - [[[song.artists[0].name]]]
       </div>
     </div>
-    {{#each song_queue}}
-      {{name}}
-    {{/each}}
+
   </body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular-cookies.min.js"></script>
   <script src="/js/search.js"></script>
   <script src="/js/sockets.js"></script>
 </html>

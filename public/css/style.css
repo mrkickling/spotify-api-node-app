@@ -1,5 +1,11 @@
+#search-results{
+  position:absolute;
+  background:white;
+  padding:5px;
+}
 .song{
   background:lightgrey;
+  margin-top:5px;
   padding:10px;
 }
 .song img{

@@ -92,8 +92,9 @@ app.post('/create-queue', function (request, response) {
     let new_queue = {};
     new_queue.name = name;
     new_queue.id = queue_identifier;
-    new_user.password = hash;
-    new_user.admin = curr_user;
+    new_queue.admin = curr_user;
+    new_queue.songs = [];
+    new_queue.users = [];
 
     queues[queue_identifier] = new_queue;
 
@@ -107,7 +108,10 @@ app.get('/party/:party_code', function (request, response) {
   let queue_identifier = request.params.party_code;
   let queue = queues[queue_identifier];
   if(queue){
+    response.cookie('current_queue', queue_identifier);
     response.render('party-queue', queue);
+  }else{
+    response.redirect("/");
   }
 });
 
@@ -130,11 +134,22 @@ http.listen(3000, function(){
 
 io.on('connection', function(socket){
   console.log('a user connected');
-  socket.on('my queue', function(msg){
-    console.log('message: ' + msg);
+
+  socket.on('im here', function(queue_id){
+    let queue = queues[queue_id];
+    queue.users[queue.users.length] = socket.id;
+    io.to(socket.id).emit("song list", queue.songs);
+  });
+
+  socket.on('add song', function(data){
+    let queue = queues[data.queue];
+    queue.songs[queue.songs.length] = data.id;
+    for(var i=0; i<queue.users.length; i++){
+      let curr_user = queue.users[i];
+      io.to(curr_user).emit("song list", queue.songs);
+    }
   });
 });
-
 
 function makeid(length) {
   var text = "";
