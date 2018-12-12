@@ -140,19 +140,30 @@ http.listen(3000, function(){
 io.on('connection', function(socket){
   console.log('User connected');
 
-  socket.on('im here', function(queue_id){
-    socket.request.session.user_id = makeid(16);
+  socket.on('im here', function(data){
+    let user_id = data.user_id;
+    let queue_id = data.queue;
+
     let queue = queues[queue_id];
-    let new_user = {}
-    new_user.user_id = socket.request.session.user_id;
-    new_user.socket_id = socket.id;
-    queue.users[queue.users.length] = new_user;
+
+    if(queue.users[user_id]){
+      queue.users[user_id].socket_id = socket.id;
+    }else{
+      let new_user = {}
+      new_user.user_id = user_id;
+      new_user.socket_id = socket.id;
+      queue.users[user_id] = new_user;
+    }
+
     io.to(socket.id).emit("song list", queue.songs);
   });
 
   socket.on('add song', function(data){
     let queue = queues[data.queue];
-    let added_by = socket.request.session.user_id;
+    if(!queue){
+      return;
+    }
+    let added_by = data.added_by;
 
     for(var song_index = 0; song_index<queue.songs.length; song_index++){
       let curr_song = queue.songs[song_index];
@@ -168,10 +179,38 @@ io.on('connection', function(socket){
 
     data.song.added_by = added_by;
     queue.songs[queue.songs.length] = data.song;
-    for(var i=0; i<queue.users.length; i++){
-      let curr_user = queue.users[i];
-      io.to(curr_user.socket_id).emit("song list", queue.songs);
+
+    // Send new song list to each user in queue
+    for (var user_id in queue.users) {
+      console.log("loop: " + user_id)
+      io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
     }
+
+  });
+
+  socket.on('delete song', function(data){
+    let queue = queues[data.queue];
+    if(!queue){
+      return;
+    }
+    let deleter_id = data.user_id;
+
+    for(var song_index = 0; song_index<queue.songs.length; song_index++){
+      let curr_song = queue.songs[song_index];
+      // Don't allow duplicates in queue
+      if(data.song.id == curr_song.id){
+        if(data.song.added_by == deleter_id){
+          queue.songs.splice(song_index, 1);
+        }
+      }
+    }
+
+    // Send new song list to each user in queue
+    for (var user_id in queue.users) {
+      console.log("loop: " + user_id)
+      io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
+    }
+
   });
 });
 

@@ -28,6 +28,7 @@
       <div class="song" ng-repeat="song in song_queue track by $index">
         <img ng-src="[[[ song.album.images[2].url ]]]" alt="">
         [[[song.name]]] - [[[song.artists[0].name]]]
+        <button ng-show="user_id == song.added_by" ng-click="deleteSong(song)" type="button" name="button">Delete</button>
       </div>
     </div>
 

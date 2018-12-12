@@ -19,12 +19,14 @@
   "homepage": "https://github.com/mrkickling/spotify-api-node-app#readme",
   "dependencies": {
     "bcrypt": "^3.0.2",
+    "cookie-parser": "^1.4.3",
     "dotenv": "^6.2.0",
     "express": "^4.16.4",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.15.6",
     "handlebars": "^4.0.12",
     "query-string": "^6.2.0",
+    "r": "0.0.5",
     "request": "^2.88.0",
     "socket.io": "^2.2.0",
     "spotify-web-api-node": "^4.0.0"

@@ -1,7 +1,14 @@
 var app = angular.module("spotifyApiApp", ['ngCookies']);
 
 app.controller("SearchController", ['$scope', '$http', '$cookies', 'socket', function($scope, $http, $cookies, socket) {
-  socket.emit('im here', $cookies.get('current_queue'));
+
+  if(!$cookies.get('user_id')){
+    $cookies.put('user_id', makeid(16));
+  }
+  $scope.user_id = $cookies.get('user_id');
+
+  socket.emit('im here', {queue:$cookies.get('current_queue'), user_id:$cookies.get('user_id')});
+
   $scope.search = function(){
      $http({method: "GET", url: "/search/" + $scope.search_input}).
        then(function(response) {
@@ -14,13 +21,19 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', 'socket', fun
    }
 
    $scope.addSong = function(song){
-     socket.emit('add song', { queue: $cookies.get('current_queue'), song: song});
+     socket.emit('add song', { queue: $cookies.get('current_queue'), song: song, added_by: $scope.user_id});
+     $scope.focus=false;
+   }
+
+   $scope.deleteSong = function(song){
+     socket.emit('delete song', { queue: $cookies.get('current_queue'), song: song, user_id: $scope.user_id});
      $scope.focus=false;
    }
 
    socket.on("song list", function(data){
      $scope.song_queue = data;
    })
+
 
 }]);
 
