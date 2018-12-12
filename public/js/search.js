@@ -13,8 +13,8 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', 'socket', fun
      });
    }
 
-   $scope.addSong = function(id){
-     socket.emit('add song', { queue: $cookies.get('current_queue'), id: id});
+   $scope.addSong = function(song){
+     socket.emit('add song', { queue: $cookies.get('current_queue'), song: song});
      $scope.focus=false;
    }
 

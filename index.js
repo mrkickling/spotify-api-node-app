@@ -19,13 +19,18 @@ const app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-// Session settings for server
-app.use(session({
+var sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   cookie: { maxAge: false },
   resave: false,
   saveUninitialized: true
-}))
+});
+// Session settings for server
+app.use(sessionMiddleware);
+
+io.use(function(socket, next) {
+    sessionMiddleware(socket.request, socket.request.res, next);
+});
 // View engine settings for server
 app.set('view engine', '.hbs');
 app.engine('.hbs', hbs({
@@ -133,20 +138,39 @@ http.listen(3000, function(){
 });
 
 io.on('connection', function(socket){
-  console.log('a user connected');
+  console.log('User connected');
 
   socket.on('im here', function(queue_id){
+    socket.request.session.user_id = makeid(16);
     let queue = queues[queue_id];
-    queue.users[queue.users.length] = socket.id;
+    let new_user = {}
+    new_user.user_id = socket.request.session.user_id;
+    new_user.socket_id = socket.id;
+    queue.users[queue.users.length] = new_user;
     io.to(socket.id).emit("song list", queue.songs);
   });
 
   socket.on('add song', function(data){
     let queue = queues[data.queue];
-    queue.songs[queue.songs.length] = data.id;
+    let added_by = socket.request.session.user_id;
+
+    for(var song_index = 0; song_index<queue.songs.length; song_index++){
+      let curr_song = queue.songs[song_index];
+      // Don't allow duplicates in queue
+      if(data.song.id == curr_song.id){
+        return;
+      }
+      // Don't allow several songs added by same person
+      if(added_by == curr_song.added_by){
+        return;
+      }
+    }
+
+    data.song.added_by = added_by;
+    queue.songs[queue.songs.length] = data.song;
     for(var i=0; i<queue.users.length; i++){
       let curr_user = queue.users[i];
-      io.to(curr_user).emit("song list", queue.songs);
+      io.to(curr_user.socket_id).emit("song list", queue.songs);
     }
   });
 });
