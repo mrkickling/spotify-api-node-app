@@ -24,12 +24,10 @@ module.exports = class Queue {
   }
 
   track(){
-    if(this.timeToNextSong < 1){
+    if(this.timeToNextSong < 1 && this.songs.length>0){
       let songToPlay = this.songs[0];
       let uriObject = {};
-      if(this.songs.length>0){
-        uriObject.uris = [];
-      }
+      uriObject.uris = [];
       for(let i = 0; i<this.songs.length; i++){
         uriObject.uris[i] = this.songs[i].uri;
       }
@@ -49,10 +47,10 @@ module.exports = class Queue {
       .then(function(data) {
         this.nowPlaying = data.body.item;
         if(data.body.item){
-          if(this.timeToNextSong>2){
+          if(this.timeToNextSong>2 || this.songs.length<1){
             this.timeToNextSong = (data.body.item.duration_ms - data.body.progress_ms)/1000;
+            console.log(this.timeToNextSong + " seconds left till song is done");
           }
-          console.log(this.timeToNextSong + " seconds left till song is done");
         }
         // Output items
         for (var user_id in this.users) {

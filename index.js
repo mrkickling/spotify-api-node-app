@@ -93,7 +93,6 @@ app.post('/create-queue', function (request, response) {
     let queue_identifier = makeid(6);
     let curr_user = users[request.session.identifier];
     let name = request.body['queue-name'];
-    let hash = bcrypt.hashSync(request.body['queue-password'], 10);
 
     let new_queue = new Queue(name, queue_identifier, curr_user, io);
     new_queue.track();
