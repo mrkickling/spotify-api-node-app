@@ -76,7 +76,7 @@ app.get('/get_access', function (request, response) {
           response_type: 'code',
           client_id: process.env.CLIENT_ID,
           scope: scope,
-          redirect_uri: 'http://localhost:'+port+'/get_access',
+          redirect_uri: 'http://'+process.env.HOST+':'+port+'/get_access',
           //state: state
         }));
     }else if(request.query.code){

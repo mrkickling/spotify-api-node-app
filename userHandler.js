@@ -1,6 +1,8 @@
 var SpotifyWebApi = require('spotify-web-api-node');
 var request = require('request');
-var REDIRECT_URI = "http://localhost:"+process.env.PORT+"/get_access";
+require('dotenv').config();
+
+var REDIRECT_URI = "http://"+process.env.HOST+":"+process.env.PORT+"/get_access";
 
 // Initializing a class definition
 module.exports = class User {
@@ -53,7 +55,7 @@ module.exports = class User {
       json: true
     };
     request.post(authOptions, function(error, response, body) {
-      if (response.statusCode == 200) {
+      if (!error && response.statusCode == 200) {
         var access_token = body.access_token;
         var refresh_token = body.refresh_token;
         console.log("Got new access token!");
