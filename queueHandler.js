@@ -61,7 +61,7 @@ module.exports = class Queue {
         console.log('Something went wrong!', err);
       });
     }
-    setTimeout(this.track.bind(this), 2000);
+    setTimeout(this.track.bind(this), 1000);
   }
 
 }
