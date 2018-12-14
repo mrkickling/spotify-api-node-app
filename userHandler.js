@@ -1,6 +1,6 @@
 var SpotifyWebApi = require('spotify-web-api-node');
 var request = require('request');
-var REDIRECT_URI = "http://localhost:3000/get_access";
+var REDIRECT_URI = "http://localhost:"+process.env.PORT+"/get_access";
 
 // Initializing a class definition
 module.exports = class User {

@@ -76,7 +76,7 @@ app.get('/get_access', function (request, response) {
           response_type: 'code',
           client_id: process.env.CLIENT_ID,
           scope: scope,
-          redirect_uri: 'http://localhost:3000/get_access',
+          redirect_uri: 'http://localhost:'+port+'/get_access',
           //state: state
         }));
     }else if(request.query.code){
@@ -129,8 +129,8 @@ app.get('/search/:term', function (request, response) {
 
 });
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+http.listen(port, function(){
+  console.log('listening on *:' + port);
 });
 
 io.on('connection', function(socket){
