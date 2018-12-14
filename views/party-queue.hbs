@@ -23,6 +23,11 @@
       </div>
     </div>
 
+    <div class="now-playing">
+      <h3>Now playing</h3>
+      <img ng-src="[[[ nowPlaying.album.images[2].url ]]]" alt="">
+      [[[nowPlaying.name]]] -  [[[nowPlaying.artists[0].name]]]
+    </div>
     <h2>Queue</h2>
     <div id="song-queue">
       <div class="song" ng-repeat="song in song_queue track by $index">

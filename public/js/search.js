@@ -34,6 +34,10 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', 'socket', fun
      $scope.song_queue = data;
    })
 
+   socket.on("now playing", function(data){
+     $scope.nowPlaying = data;
+   })
+
 
 }]);
 
@@ -41,3 +45,12 @@ app.config(function($interpolateProvider) {
   $interpolateProvider.startSymbol('[[[');
   $interpolateProvider.endSymbol(']]]');
 });
+
+function makeid(length) {
+  var text = "";
+  var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < length; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  return text;
+}

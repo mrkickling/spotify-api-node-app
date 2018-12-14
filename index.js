@@ -1,5 +1,6 @@
 // Imports
 var UserHandler = require("./userHandler.js");
+var Queue = require("./queueHandler.js");
 require('dotenv').config();
 
 const express = require('express');
@@ -69,7 +70,7 @@ app.get("/", function (request, response) {
 app.get('/get_access', function (request, response) {
     // your application requests authorization
     if(!request.query.code){
-      var scope = 'user-read-private user-read-email user-read-recently-played user-read-currently-playing playlist-modify-public playlist-modify-private user-top-read';
+      var scope = 'user-read-private user-read-email user-modify-playback-state user-read-recently-played user-read-currently-playing user-read-playback-state playlist-modify-public playlist-modify-private user-top-read';
       response.redirect('https://accounts.spotify.com/authorize?' +
         querystring.stringify({
           response_type: 'code',
@@ -94,12 +95,8 @@ app.post('/create-queue', function (request, response) {
     let name = request.body['queue-name'];
     let hash = bcrypt.hashSync(request.body['queue-password'], 10);
 
-    let new_queue = {};
-    new_queue.name = name;
-    new_queue.id = queue_identifier;
-    new_queue.admin = curr_user;
-    new_queue.songs = [];
-    new_queue.users = [];
+    let new_queue = new Queue(name, queue_identifier, curr_user, io);
+    new_queue.track();
 
     queues[queue_identifier] = new_queue;
 
@@ -154,8 +151,8 @@ io.on('connection', function(socket){
       new_user.socket_id = socket.id;
       queue.users[user_id] = new_user;
     }
-
     io.to(socket.id).emit("song list", queue.songs);
+    io.to(socket.id).emit("now playing", queue.nowPlaying);
   });
 
   socket.on('add song', function(data){
@@ -172,9 +169,9 @@ io.on('connection', function(socket){
         return;
       }
       // Don't allow several songs added by same person
-      if(added_by == curr_song.added_by){
-        return;
-      }
+      // if(added_by == curr_song.added_by){
+      //   return;
+      // }
     }
 
     data.song.added_by = added_by;
@@ -182,8 +179,8 @@ io.on('connection', function(socket){
 
     // Send new song list to each user in queue
     for (var user_id in queue.users) {
-      console.log("loop: " + user_id)
       io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
+      io.to(queue.users[user_id].socket_id).emit("now playing", queue.nowPlaying);
     }
 
   });
@@ -207,8 +204,8 @@ io.on('connection', function(socket){
 
     // Send new song list to each user in queue
     for (var user_id in queue.users) {
-      console.log("loop: " + user_id)
       io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
+      io.to(queue.users[user_id].socket_id).emit("now playing", queue.nowPlaying);
     }
 
   });
