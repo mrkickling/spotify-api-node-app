@@ -47,7 +47,7 @@ app.use(express.urlencoded({
 }));
 app.set('views', __dirname + '/views')
 
-// The object we'll use to interact with the API
+// The app object we'll use to interact with the API
 var spotifyApi = new SpotifyWebApi({
   clientId : process.env.CLIENT_ID,
   clientSecret : process.env.CLIENT_SECRET

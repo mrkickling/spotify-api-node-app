@@ -19,7 +19,6 @@ module.exports = class Queue {
 
   decrementSeconds(){
     this.timeToNextSong--;
-    console.log(this.timeToNextSong + " seconds left till song is done");
     setTimeout(this.decrementSeconds.bind(this), 1000);
   }
 
@@ -35,21 +34,26 @@ module.exports = class Queue {
       this.owner.spotifyApi.play(uriObject)
       .then(function(data){
         if(this.songs[0]){
-          console.log("playing " + data);
           this.timeToNextSong = this.songs[0].duration_ms/1000;
           this.songs.splice(0, 1);
         }
       }.bind(this), function(err) {
-        console.log('Something went wrong!', err);
+        console.log('Could not get "now playing"!', err);
       });
     }else{
       this.owner.spotifyApi.getMyCurrentPlaybackState({})
       .then(function(data) {
         this.nowPlaying = data.body.item;
+
+        for(let i = 0; i<this.songs.length; i++){
+          if(this.songs[i].id == this.nowPlaying.id){
+            this.songs.splice(i, 1);
+          }
+        }
+
         if(data.body.item){
           if(this.timeToNextSong>2 || this.songs.length<1){
             this.timeToNextSong = (data.body.item.duration_ms - data.body.progress_ms)/1000;
-            console.log(this.timeToNextSong + " seconds left till song is done");
           }
         }
         // Output items
@@ -58,7 +62,7 @@ module.exports = class Queue {
           this.io.to(this.users[user_id].socket_id).emit("now playing", this.nowPlaying);
         }
       }.bind(this), function(err) {
-        console.log('Something went wrong!', err);
+        console.log('Could not get current playback!', err);
       });
     }
     setTimeout(this.track.bind(this), 1000);
