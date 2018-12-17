@@ -59,9 +59,9 @@
         <div id="song-queue">
           <div class="song" ng-repeat="song in song_queue track by $index">
             <div class="vote-input">
-              <a ng-click="upvote(song)" href="#">^</a><br>
+              <a ng-click="upvote(song)">^</a><br>
               [[[song.points]]]<br>
-              <a ng-click="downvote(song)" href="#">v</a>
+              <a ng-click="downvote(song)">v</a>
             </div>
             <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
             <div class="song-info">
