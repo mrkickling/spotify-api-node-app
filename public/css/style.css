@@ -56,6 +56,9 @@ section.index, section.new-queue{
 .public-queues-list-item{
   padding:5px;
 }
+.pick-name{
+  padding:20px;
+}
 .queue-name{
   display:block;
   width:100%;

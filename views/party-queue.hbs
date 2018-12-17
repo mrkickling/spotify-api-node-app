@@ -51,13 +51,13 @@
         </div>
 
         <div class="pick-name" ng-hide="user_id.length>0">
-          Pick a username to be able to add songs!
+          Pick a username to be able to add songs!<br>
           <input class="pretty-input" type="text" name="name-input" placeholder="Username" ng-init="input_username"ng-model="input_username">
-          <button type="button" name="button" ng-click="enterUsername(input_username)">Done</button>
+          <button class="pretty-button" type="button" name="button" ng-click="enterUsername(input_username)">Done</button>
 
         </div>
 
-        <h2>Song queue</h2>
+        <h2 ng-show="user_id.length>1">Song queue</h2>
         <div id="song-queue">
           <div class="song" ng-repeat="song in song_queue track by $index">
             <div class="vote-input">
