@@ -126,12 +126,23 @@ section.index, section.new-queue{
 }
 .song .vote-input{
   float:left;
-  width:25px;
+  width:35px;
+  padding:5px;
 }
 .song .vote-input a{
   color:white;
   text-decoration: none;
 }
+.vote-button{
+  width:18px;
+  height:18px;
+}
+.vote-button img{
+  width:18px;
+  height:18px;
+  margin-top:2px;
+}
+
 .song .add-button{
   float:right;
   width:50px;
@@ -150,7 +161,7 @@ section.index, section.new-queue{
   min-height:70px;
 }
 .song .cover-img{
-  height:70px;
+  height:80px;
   float:left;
 }
 .song .song-info{
@@ -163,8 +174,8 @@ section.index, section.new-queue{
   width:40px;
   height:40px;
   position:relative;
-  top:10px;
-  right:10px;
+  top:15px;
+  right:15px;
 }
 .delete-button img{
   width:100%;
