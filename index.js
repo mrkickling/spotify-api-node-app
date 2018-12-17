@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt');
 var session = require('express-session');
 var hbs = require('express-handlebars');
 var SpotifyWebApi = require('spotify-web-api-node');
+var sanitizeHtml = require('sanitize-html');
 
 // Store users and queues in these arrays
 var users = [];
@@ -92,13 +93,20 @@ app.post('/create-queue', function (request, response) {
   if(request.session.identifier){
     let queue_identifier = makeid(6);
     let curr_user = users[request.session.identifier];
-    let name = request.body['queue-name'];
+    let name = sanitizeHtml(request.body['queue-name']);
 
-    let new_queue = new Queue(name, queue_identifier, curr_user, io);
+    let admin_user = {}
+    admin_user.name = "admin";
+    admin_user.user_token = request.session.identifier;
+    admin_user.socket_id = null;
+
+    let new_queue = new Queue(name, queue_identifier, curr_user, admin_user, io);
     new_queue.track();
 
     queues[queue_identifier] = new_queue;
 
+    response.cookie('user_id', admin_user.name);
+    response.cookie('user_token', admin_user.user_token);
     response.redirect('party/' + queue_identifier);
   }else{
     response.redirect("/");
@@ -116,9 +124,10 @@ app.get('/party/:party_code', function (request, response) {
   }
 });
 
-app.get('/search/:term', function (request, response) {
+app.get('/search/:queue/:term', function (request, response) {
+  let queue = queues[request.params.queue];
   let term = request.params.term;
-  spotifyApi.searchTracks(term, {limit: 5}).then(
+  queue.owner.spotifyApi.searchTracks(term, {limit: 8}).then(
     function(data) {
       response.send(data.body);
     },
@@ -130,28 +139,31 @@ app.get('/search/:term', function (request, response) {
 });
 
 http.listen(port, function(){
-  console.log('listening on *:' + port);
+  console.log('listening on '+process.env.HOST+':' + port);
 });
 
 io.on('connection', function(socket){
   console.log('User connected');
 
   socket.on('im here', function(data){
-    let user_id = data.user_id;
+    let user_id = sanitizeHtml(data.user_id);
+    let user_token = data.user_token;
     let queue_id = data.queue;
 
     let queue = queues[queue_id];
 
-    if(queue.users[user_id]){
+    if(queue.users[user_id] && queue.users[user_id].token == user_token){
       queue.users[user_id].socket_id = socket.id;
     }else{
       let new_user = {}
       new_user.user_id = user_id;
+      new_user.token = user_token;
       new_user.socket_id = socket.id;
       queue.users[user_id] = new_user;
     }
     io.to(socket.id).emit("song list", queue.songs);
-    io.to(socket.id).emit("now playing", queue.nowPlaying);
+    io.to(socket.id).emit("queue info", { admin: queue.admin.name });
+    io.to(socket.id).emit("now playing", {song: queue.nowPlaying, playing: queue.isPlaying});
   });
 
   socket.on('add song', function(data){
@@ -173,14 +185,8 @@ io.on('connection', function(socket){
       // }
     }
 
-    data.song.added_by = added_by;
-    queue.songs[queue.songs.length] = data.song;
-
-    // Send new song list to each user in queue
-    for (var user_id in queue.users) {
-      io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
-      io.to(queue.users[user_id].socket_id).emit("now playing", queue.nowPlaying);
-    }
+    queue.addSong(data.song, added_by);
+    io.to(socket.id).emit("song list", queue.songs);
 
   });
 
@@ -189,26 +195,112 @@ io.on('connection', function(socket){
     if(!queue){
       return;
     }
-    let deleter_id = data.user_id;
+    let deleter_id = sanitizeHtml(data.user_id);
+    let deleter_token = data.user_token;
+
+    let admin_user = queue.admin;
+    let isAdmin = (admin_user.name == deleter_id && admin_user.user_token == deleter_token);
+
+    if(queue.users[deleter_id].user_token != deleter_token && !isAdmin){
+      return;
+    }
 
     for(var song_index = 0; song_index<queue.songs.length; song_index++){
       let curr_song = queue.songs[song_index];
       // Don't allow duplicates in queue
       if(data.song.id == curr_song.id){
-        if(data.song.added_by == deleter_id){
+        if(data.song.added_by == deleter_id || isAdmin){
           queue.songs.splice(song_index, 1);
         }
       }
     }
-
-    // Send new song list to each user in queue
-    for (var user_id in queue.users) {
-      io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
-      io.to(queue.users[user_id].socket_id).emit("now playing", queue.nowPlaying);
-    }
+    io.to(socket.id).emit("song list", queue.songs);
 
   });
+
+  socket.on('pause', function(data){
+    queue = queues[data.queue];
+    if(socket_is_admin(data)){
+      queue.pause();
+      update_all_users_in_queue(queue)
+    }
+  });
+
+  socket.on('play', function(data){
+    queue = queues[data.queue];
+    if(socket_is_admin(data)){
+      queue.play();
+      update_all_users_in_queue(queue)
+    }
+  });
+
+  socket.on('next', function(data){
+    queue = queues[data.queue];
+    if(socket_is_admin(data)){
+      queue.next();
+      update_all_users_in_queue(queue)
+    }
+  });
+
+  socket.on('delete', function(data){
+    queue = queues[data.queue];
+    if(socket_is_admin(data)){
+      console.log("deleting queue now")
+      let remove_user = queue.admin.user_id;
+      queue.delete();
+      delete users[remove_user];
+      delete queues[data.queue];
+    }
+  });
+
+  socket.on('upvote song', function(data){
+    queue = queues[data.queue];
+
+    let user_id = sanitizeHtml(data.user_id);
+    let user_token = data.user_token;
+
+    if(queue.users[user_id].user_token != user_token && !socket_is_admin(data)){
+      return;
+    }else{
+      queue.upvoteSong(data.song.id, user_id)
+    }
+  });
+
+  socket.on('downvote song', function(data){
+    queue = queues[data.queue];
+
+    let user_id = sanitizeHtml(data.user_id);
+    let user_token = data.user_token;
+
+    if(queue.users[user_id].user_token != user_token && !socket_is_admin(data)){
+      return;
+    }else{
+      queue.downvoteSong(data.song.id, user_id)
+    }
+  });
+
 });
+
+function update_all_users_in_queue(queue){
+  for (var user_id in queue.users) {
+    io.to(queue.users[user_id].socket_id).emit("now playing", {song:queue.nowPlaying, playing:queue.isPlaying});
+  }
+}
+
+function socket_is_admin(data){
+  let queue = queues[data.queue];
+  if(!queue){
+    return false;
+  }
+  let socket_id = data.user_id;
+  let socket_token = data.user_token;
+  let admin_user = queue.admin;
+  if(admin_user.name == socket_id && admin_user.user_token == socket_token){
+    return true;
+  }
+  return false;
+
+}
 
 function makeid(length) {
   var text = "";

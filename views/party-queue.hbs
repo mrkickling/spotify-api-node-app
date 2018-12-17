@@ -8,42 +8,71 @@
   </head>
   <body ng-app="spotifyApiApp" ng-controller="SearchController" ng-cloak>
     <section class="queue">
-      <div class="contain-queue">
-        <h1>{{{name}}}</h1>
+      <h1 class="queue-name">{{{name}}}</h1>
 
+      <div class="contain-queue">
         <div class="now-playing" ng-show="nowPlaying.name.length>0">
-          <img ng-src="[[[ nowPlaying.album.images[1].url ]]]" alt="">
+          <img class="album-art-playing"ng-src="[[[ nowPlaying.album.images[1].url ]]]" alt="">
           <div class="now-playing-info">
-            <h3>Now playing</h3>
+            <h3>Now playing <span ng-hide="isPlaying">(paused)</span> </h3>
             [[[nowPlaying.name]]] -  [[[nowPlaying.artists[0].name]]]
           </div>
+
+          <div class="control-box">
+            <a class="control-button" ng-show="isPlaying && user_id==admin" ng-click="pause()"> <img src="/img/pause-icon.png" alt="Pause button"> </a>
+            <a class="control-button" ng-show="!isPlaying && user_id==admin" ng-click="play()"><img src="/img/play-icon.png" alt="Play button"></a>
+            <a class="control-button" ng-show="user_id==admin && song_queue.length>0" ng-click="next()"><img src="/img/next-icon.png" alt="Next song button"></a>
+            <br>
+            <a href="#" class="pretty-button" ng-show="user_id==admin" ng-click="remove()">Remove queue</a>
+            <a href="#" class="pretty-button green" ng-show="user_id!=admin" ng-click="connect()">Connect queue with your Spotify Account</a>
+          </div>
+
         </div>
 
-        <div class="search-form">
+        <div class="search-form" ng-show="user_id.length>0">
           <br>
           <form class="" ng-submit="search()">
             Add a song to queue:
             <input class="pretty-input" ng-focus="focus=true" type="text" id="search-input" name="search-input" placeholder="Song name" ng-model="search_input">
+            <a ng-show="focus" name="button" ng-click="focus=false"> <img class="close-dropdown-img" src="/img/icon-exit.png" alt="Exit"></a>
+
           </form>
           <div id="search-results" ng-show="focus && search_results.length>0">
             <div class="song" ng-repeat="song in search_results">
-              <img ng-src="[[[ song.album.images[2].url ]]]" alt="">
+              <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
               <div class="song-info">
                 [[[song.name]]] - [[[song.artists[0].name]]]
-                <button ng-click="addSong(song)" type="button" name="button">Add song</button>
               </div>
+              <button class="add-button" ng-click="addSong(song)" type="button" name="button"> <img src="/img/add-icon.png" alt=""> Add</button>
             </div>
-            <button type="button" name="button" ng-click="focus=false">Close dropdown</button>
           </div>
         </div>
 
-        <h2>Queue</h2>
+        <div class="pick-name" ng-hide="user_id.length>0">
+          Pick a username to be able to add songs!
+          <input class="pretty-input" type="text" name="name-input" placeholder="Username" ng-init="input_username"ng-model="input_username">
+          <button type="button" name="button" ng-click="enterUsername(input_username)">Done</button>
+
+        </div>
+
+        <h2>Song queue</h2>
         <div id="song-queue">
           <div class="song" ng-repeat="song in song_queue track by $index">
-            <img ng-src="[[[ song.album.images[2].url ]]]" alt="">
+            <div class="vote-input">
+              <a ng-click="upvote(song)" href="#">^</a><br>
+              [[[song.points]]]<br>
+              <a ng-click="downvote(song)" href="#">v</a>
+            </div>
+            <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
             <div class="song-info">
-              [[[song.name]]] - [[[song.artists[0].name]]]
-              <button ng-show="user_id == song.added_by" ng-click="deleteSong(song)" type="button" name="button">Delete</button>
+              [[[song.name]]] - [[[song.artists[0].name]]]<br>
+              Added by [[[song.added_by]]]
+            </div>
+            <a class="delete-button" ng-show="user_id == song.added_by || user_id==admin" ng-click="deleteSong(song)"><img src="/img/delete-icon.png" alt="Delete song"></a>
+          </div>
+          <div class="song" ng-show="song_queue.length<1">
+            <div class="song-info">
+              No songs in queue right now, why not add one?
             </div>
           </div>
         </div>
@@ -51,6 +80,9 @@
       </div>
     </section>
   </body>
+  <script type="text/javascript">
+    var queue_id = "{{{id}}}";
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular-cookies.min.js"></script>

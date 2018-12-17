@@ -28,6 +28,7 @@
     "query-string": "^6.2.0",
     "r": "0.0.5",
     "request": "^2.88.0",
+    "sanitize-html": "^1.19.3",
     "socket.io": "^2.2.0",
     "spotify-web-api-node": "^4.0.0"
   }

@@ -32,20 +32,26 @@ module.exports = class User {
   }
 
   refreshToken(){
+    if(this.spotifyApi==null){
+      return;
+    }
     this.spotifyApi.refreshAccessToken().then(
       function(data) {
         console.log('The access token has been refreshed!');
         // Save the access token so that it's used in future calls
         this.spotifyApi.setAccessToken(data.body['access_token']);
-        this.spotifyApi.setRefreshToken(data.body['refresh_token']);
         this.expires_in = data.body['expires_in'];
-        setTimeout(this.refreshToken.bind(this), 900*this.expires_in);
+        setTimeout(this.refreshToken.bind(this), 100*this.expires_in);
       }.bind(this),
       function(err) {
         console.log('Could not refresh access token', err);
       }
     );
 
+  }
+
+  stop(){
+    this.spotifyApi = null;
   }
 }
 
