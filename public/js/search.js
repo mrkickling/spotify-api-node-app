@@ -64,12 +64,22 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
      socket.emit('delete', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token});
    }
 
+   $scope.subscribe = function(){
+     $window.location.href = '/subscribe/' + queue_id + '/' + $scope.user_id;
+   }
+
+   $scope.unsubscribe = function(){
+     socket.emit('unsubscribe', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token});
+     $window.location.href = '/party/' + queue_id;
+   }
+
    socket.on("song list", function(data){
      $scope.song_queue = data;
    })
 
    socket.on("queue info", function(data){
      $scope.admin = data.admin;
+     $scope.subscribers = data.subscribers;
    })
 
    socket.on("now playing", function(data){

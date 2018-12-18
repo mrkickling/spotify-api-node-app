@@ -82,7 +82,7 @@ app.get('/get_access', function (request, response) {
         }));
     }else if(request.query.code){
       request.session.identifier = makeid(16);
-      new_user = new UserHandler(request.session.identifier);
+      new_user = new UserHandler(request.session.identifier, 'http://'+process.env.HOST+':'+port+'/get_access');
       new_user.initializeAPI(request.query.code);
       users[request.session.identifier] = new_user;
       response.render('create-new-queue', {});
@@ -117,12 +117,50 @@ app.get('/party/:party_code', function (request, response) {
   let queue_identifier = request.params.party_code;
   let queue = queues[queue_identifier];
   if(queue){
-    response.cookie('current_queue', queue_identifier);
     response.render('party-queue', queue);
   }else{
     response.redirect("/");
   }
 });
+
+app.get('/subscribe/:party_code/:user_id', function (request, response) {
+  let queue_identifier = request.params.party_code;
+  let user_id = request.params.user_id;
+
+  if(!queues[queue_identifier]){
+    response.send("Problem:D");
+  }
+
+  // Check user password somehow
+
+  request.session.subscribing_to = queue_identifier;
+  request.session.user_id = user_id;
+  var scope = 'user-read-private user-read-email user-modify-playback-state user-read-recently-played user-read-currently-playing user-read-playback-state playlist-modify-public playlist-modify-private user-top-read';
+  response.redirect('https://accounts.spotify.com/authorize?' +
+    querystring.stringify({
+      response_type: 'code',
+      client_id: process.env.CLIENT_ID,
+      scope: scope,
+      redirect_uri: 'http://'+process.env.HOST+':'+port+'/subscribe-callback',
+      //state: state
+    }));
+});
+
+app.get('/subscribe-callback', function (request, response) {
+  let queue_identifier = request.session.subscribing_to;
+  let queue = queues[queue_identifier];
+
+  if(request.session.subscribing_to && request.session.user_id && request.query.code){
+    new_user = new UserHandler(request.session.user_id, 'http://'+process.env.HOST+':'+port+'/subscribe-callback');
+    new_user.initializeAPI(request.query.code);
+    queue.addSubscriber(new_user);
+    response.redirect('party/' + queue_identifier);
+  }else{
+    response.send("Error!");
+  }
+});
+
+
 
 app.get('/search/:queue/:term', function (request, response) {
   let queue = queues[request.params.queue];
@@ -161,8 +199,14 @@ io.on('connection', function(socket){
       new_user.socket_id = socket.id;
       queue.users[user_id] = new_user;
     }
+
+    subscriber_ids = [];
+    for(var i=0; i<queue.subscribers.length; i++){
+      subscriber_ids[i] = queue.subscribers[i].identifier;
+    }
+
     io.to(socket.id).emit("song list", queue.songs);
-    io.to(socket.id).emit("queue info", { admin: queue.admin.name });
+    io.to(socket.id).emit("queue info", { admin: queue.admin.name, subscribers:subscriber_ids });
     io.to(socket.id).emit("now playing", {song: queue.nowPlaying, playing: queue.isPlaying});
   });
 
@@ -250,6 +294,16 @@ io.on('connection', function(socket){
       queue.delete();
       delete users[remove_user];
       delete queues[data.queue];
+    }
+  });
+
+  socket.on('unsubscribe', function(data){
+    let queue = queues[data.queue];
+    let subscribers = queue.subscribers;
+    console.log("user "+ data.user_id +" unsubscribed");
+    for(var i=0; i<subscribers.length; i++){
+      subscribers[i].stop();
+      subscribers.splice(i, 1);
     }
   });
 

@@ -7,6 +7,9 @@
     <title></title>
   </head>
   <body ng-app="spotifyApiApp" ng-controller="SearchController" ng-cloak>
+    <nav>
+      <h2>QueueMaker</h2>
+    </nav>
     <section class="queue">
       <h1 class="queue-name">{{{name}}}</h1>
 
@@ -16,8 +19,6 @@
           <div class="now-playing-info">
             <h3>Now playing <span ng-hide="isPlaying">(paused)</span> </h3>
             [[[nowPlaying.name]]] -  [[[nowPlaying.artists[0].name]]]<br>
-            Released [[[nowPlaying.album.release_date]]]<br>
-
           </div>
 
           <div class="control-box">
@@ -26,7 +27,8 @@
             <a class="control-button" ng-show="user_id==admin && song_queue.length>0" ng-click="next()"><img src="/img/next-icon.png" alt="Next song button"></a>
             <br>
             <a href="#" class="pretty-button" ng-show="user_id==admin" ng-click="remove()">Remove queue</a>
-            <a href="#" class="pretty-button green" ng-show="user_id!=admin" ng-click="connect()">Connect queue with your Spotify Account</a>
+            <a href="#" class="pretty-button green" ng-show="user_id!=admin && !subscribers.includes(user_id)" ng-click="subscribe()">Connect queue with Spotify Account</a>
+            <a href="#" class="pretty-button" ng-show="user_id!=admin && subscribers.includes(user_id)" ng-click="unsubscribe()">Disconnect queue from Spotify Account</a>
           </div>
 
         </div>

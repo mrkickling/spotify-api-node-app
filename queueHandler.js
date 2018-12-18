@@ -15,7 +15,7 @@ module.exports = class Queue {
     this.timeToNextSong = 0;
     this.io = io;
     this.isPlaying = false;
-    this.subscribed = {};
+    this.subscribers = [];
 
     this.decrementSeconds();
   }
@@ -40,20 +40,21 @@ module.exports = class Queue {
       this.owner.spotifyApi.play(uriObject)
       .then(function(data){
         if(this.songs[0]){
+          this.nowPlaying = this.songs[0];
           this.timeToNextSong = this.songs[0].duration_ms/1000;
           this.songs.splice(0, 1);
         }
       }.bind(this), function(err) {
-        console.log('Could not get "now playing"!', err);
+        console.log('Could not get "now playing" for ' + this.owner.identifier, err);
       });
+
+      this.playForSubs(uriObject);
+
     }else{
       this.owner.spotifyApi.getMyCurrentPlaybackState({})
       .then(function(data) {
-        if(!data.body.is_playing){
-          this.isPlaying = false;
-        }else{
-          this.isPlaying = true;
-        }
+
+        this.isPlaying = data.body.is_playing;
         this.nowPlaying = data.body.item;
 
         for(let i = 0; i<this.songs.length; i++){
@@ -67,15 +68,16 @@ module.exports = class Queue {
             this.timeToNextSong = (data.body.item.duration_ms - data.body.progress_ms)/1000;
           }
         }
-        // Output items
-        for (var user_id in this.users) {
-          this.io.to(this.users[user_id].socket_id).emit("song list", this.songs);
-          this.io.to(this.users[user_id].socket_id).emit("now playing", {song:this.nowPlaying, playing:this.isPlaying});
-        }
       }.bind(this), function(err) {
-        console.log('Could not get current playback!', err);
+        console.log('Could not get current playback for ' + this.owner.identifier, err);
       });
     }
+    // Output items
+    for (var user_id in this.users) {
+      this.io.to(this.users[user_id].socket_id).emit("song list", this.songs);
+      this.io.to(this.users[user_id].socket_id).emit("now playing", {song:this.nowPlaying, playing:this.isPlaying});
+    }
+
     setTimeout(this.track.bind(this), 1500);
   }
   addSong(song, added_by){
@@ -151,6 +153,22 @@ module.exports = class Queue {
 
     this.owner.stop();
     this.owner = null;
+  }
+
+  playForSubs(uriObject){
+    for(var i=0; i<this.subscribers.length; i++){
+      let curr = this.subscribers[i];
+      curr.spotifyApi.play(uriObject)
+      .then(function(data){
+        console.log('Played for subscribed user: '+curr.identifier+'!');
+      }, function(err) {
+        console.log('Could not get "now playing" for user'+curr.identifier+'!', err);
+      });
+    }
+  }
+
+  addSubscriber(user){
+    this.subscribers[this.subscribers.length] = user;
   }
 
 }

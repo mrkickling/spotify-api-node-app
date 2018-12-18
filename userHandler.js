@@ -2,17 +2,16 @@ var SpotifyWebApi = require('spotify-web-api-node');
 var request = require('request');
 require('dotenv').config();
 
-var REDIRECT_URI = "http://"+process.env.HOST+":"+process.env.PORT+"/get_access";
-
 // Initializing a class definition
 module.exports = class User {
 
-  constructor(identifier) {
+  constructor(identifier, redirectUri) {
     this.identifier = identifier;
+    this.REDIRECT_URI = redirectUri;
     this.spotifyApi = new SpotifyWebApi({
       clientId : process.env.CLIENT_ID,
       clientSecret : process.env.CLIENT_SECRET,
-      redirectUri: REDIRECT_URI
+      redirectUri: this.REDIRECT_URI
     });
   }
 
@@ -20,13 +19,14 @@ module.exports = class User {
   initializeAPI(code) {
     this.spotifyApi.authorizationCodeGrant(code).then(
       function(data) {
+        console.log("Connected to user "+this.identifier+"'s spotify API");
         // Set the access token on the API object to use it in later calls
         this.spotifyApi.setAccessToken(data.body['access_token']);
         this.spotifyApi.setRefreshToken(data.body['refresh_token']);
         setTimeout(this.refreshToken.bind(this), 5000);
       }.bind(this),
       function(err) {
-        console.log('Something went wrong when authorizing user!', err);
+        console.log('Something went wrong when authorizing user ' + this.identifier, err);
       }
     );
   }
@@ -44,7 +44,7 @@ module.exports = class User {
         setTimeout(this.refreshToken.bind(this), 100*this.expires_in);
       }.bind(this),
       function(err) {
-        console.log('Could not refresh access token', err);
+        console.log('Could not refresh access token for ' + this.identifier, err);
       }
     );
 

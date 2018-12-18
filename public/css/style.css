@@ -16,6 +16,28 @@ body{
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
+
+nav{
+  color:lightgrey;
+  width:100%;
+  background:Green;
+  overflow:auto;
+  padding:10px;
+}
+nav h2{
+  margin:0;
+  display:block;
+  float:left;
+}
+.menu-item{
+  float:left;
+  padding:10px;
+  margin-left:10px;
+  border-left:1px solid black;
+  color: black;
+  text-decoration: none;
+}
+
 section{
   color:white;
   text-align: center;
