@@ -26,7 +26,7 @@ module.exports = class Queue {
   }
 
   track(){
-    if(this.owner == null){
+    if(!this.owner){
       return;
     }
     if(this.timeToNextSong < 1 && this.songs.length>0){
@@ -48,7 +48,6 @@ module.exports = class Queue {
         console.log('Could not get "now playing" for ' + this.owner.identifier, err);
       });
 
-      this.playForSubs(uriObject);
 
     }else{
       this.owner.spotifyApi.getMyCurrentPlaybackState({})
@@ -155,10 +154,10 @@ module.exports = class Queue {
     this.owner = null;
   }
 
-  playForSubs(uriObject){
+  playForSubs(){
     for(var i=0; i<this.subscribers.length; i++){
       let curr = this.subscribers[i];
-      curr.spotifyApi.play(uriObject)
+      curr.spotifyApi.play([nowPlaying.uri])
       .then(function(data){
         console.log('Played for subscribed user: '+curr.identifier+'!');
       }, function(err) {

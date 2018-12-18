@@ -21,6 +21,8 @@ body{
   color:lightgrey;
 }
 nav{
+  position:fixed;
+  top:0;
   color:lightgrey;
   width:100%;
   background:Green;
@@ -91,6 +93,7 @@ section.index, section.new-queue{
   font-size:30px;
   text-transform: uppercase;
   margin:0;
+  margin-top:25px;
 }
 .contain-queue{
   overflow:auto;
@@ -142,10 +145,11 @@ section.index, section.new-queue{
 }
 /* For party queue page */
 #search-results{
+  margin-left:-15px;
   width:80%;
   background:rgba(255, 255, 255, 0.8);
   margin:auto;
-  position:absolute;
+  position:relative;
   padding:10px;
   z-index:100;
 }
