@@ -93,13 +93,16 @@ section.index, section.new-queue{
   margin:0;
 }
 .contain-queue{
-  background:white;
   overflow:auto;
   width:80%;
   max-width: 1000px;
   margin:auto;
 
   color:gray;
+}
+.search-form{
+  padding:15px;
+  background:white;
 }
 .pretty-button{
   display:inline-block;
