@@ -169,6 +169,13 @@ module.exports = class Queue {
 
   addSubscriber(user){
     this.subscribers[this.subscribers.length] = user;
+    user.spotifyApi.play([this.nowPlaying.uri])
+    .then(function(data){
+      console.log('Played for subscribed user: '+user.identifier+'!');
+    }, function(err) {
+      console.log('Could not get "now playing" for user'+user.identifier+'!', err);
+    });
+
   }
 
 }
