@@ -19,7 +19,11 @@
       <div class="public-queues-list">
         <h3>Public queues</h3>
         <div class="public-queues-list-item">
-          A queue
+          <ul>
+            {{#each queues}}
+                <li><a href="/party/{{{this.id}}}">{{{this.name}}}</a></li>
+            {{/each}}
+          </ul>
         </div>
       </div>
     </section>

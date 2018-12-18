@@ -16,7 +16,10 @@ body{
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
-
+.header-title a{
+  text-decoration: none;
+  color:lightgrey;
+}
 nav{
   color:lightgrey;
   width:100%;

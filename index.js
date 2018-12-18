@@ -15,7 +15,7 @@ var sanitizeHtml = require('sanitize-html');
 
 // Store users and queues in these arrays
 var users = [];
-var queues = [];
+var queues = {};
 
 const app = express();
 var http = require('http').Server(app);
@@ -65,7 +65,7 @@ spotifyApi.clientCredentialsGrant()
 
 // API REQUESTS
 app.get("/", function (request, response) {
-  response.render('index', {});
+  response.render('index', {queues:queues, test:"hej"});
 });
 
 app.get('/get_access', function (request, response) {
