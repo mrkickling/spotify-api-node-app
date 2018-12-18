@@ -44,6 +44,10 @@ module.exports = class Queue {
           this.timeToNextSong = this.songs[0].duration_ms/1000;
           this.songs.splice(0, 1);
         }
+        for (var user_id in this.users) {
+          this.io.to(this.users[user_id].socket_id).emit("song list", this.songs);
+          this.io.to(this.users[user_id].socket_id).emit("now playing", {song:this.nowPlaying, playing:this.isPlaying});
+        }
       }.bind(this), function(err) {
         console.log('Could not get "now playing" for ' + this.owner.identifier, err);
       });
@@ -55,6 +59,11 @@ module.exports = class Queue {
 
         this.isPlaying = data.body.is_playing;
         this.nowPlaying = data.body.item;
+        // Output items
+        for (var user_id in this.users) {
+          this.io.to(this.users[user_id].socket_id).emit("song list", this.songs);
+          this.io.to(this.users[user_id].socket_id).emit("now playing", {song:this.nowPlaying, playing:this.isPlaying});
+        }
 
         for(let i = 0; i<this.songs.length; i++){
           if(this.songs[i].id == this.nowPlaying.id){
@@ -71,11 +80,6 @@ module.exports = class Queue {
         console.log('Could not get current playback for ' + this.owner.identifier, err);
       });
     }
-    // Output items
-    for (var user_id in this.users) {
-      this.io.to(this.users[user_id].socket_id).emit("song list", this.songs);
-      this.io.to(this.users[user_id].socket_id).emit("now playing", {song:this.nowPlaying, playing:this.isPlaying});
-    }
 
     setTimeout(this.track.bind(this), 1500);
   }
@@ -86,6 +90,9 @@ module.exports = class Queue {
     song.points = 0;
     this.songs[this.songs.length] = song;
     this.songs.sort(compare);
+    for (var user_id in this.users) {
+      this.io.to(this.users[user_id].socket_id).emit("song list", this.songs);
+    }
   }
 
   pause(){

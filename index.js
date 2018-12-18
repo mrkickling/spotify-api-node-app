@@ -60,7 +60,7 @@ spotifyApi.clientCredentialsGrant()
     // Save the access token so that it's used in future calls
     spotifyApi.setAccessToken(data.body['access_token']);
   }, function(err) {
-    console.log('Something went wrong when retrieving an access token', err.message);
+    console.log('Something went wrong when retrieving an access token for app', err.message);
   });
 
 // API REQUESTS
@@ -71,7 +71,7 @@ app.get("/", function (request, response) {
 app.get('/get_access', function (request, response) {
     // your application requests authorization
     if(!request.query.code){
-      var scope = 'user-read-private user-read-email user-modify-playback-state user-read-recently-played user-read-currently-playing user-read-playback-state playlist-modify-public playlist-modify-private user-top-read';
+      var scope = 'user-read-private user-read-birthdate user-read-email user-modify-playback-state user-read-recently-played user-read-currently-playing user-read-playback-state playlist-modify-public playlist-modify-private user-top-read';
       response.redirect('https://accounts.spotify.com/authorize?' +
         querystring.stringify({
           response_type: 'code',
@@ -81,11 +81,13 @@ app.get('/get_access', function (request, response) {
           //state: state
         }));
     }else if(request.query.code){
-      request.session.identifier = makeid(16);
-      new_user = new UserHandler(request.session.identifier, 'http://'+process.env.HOST+':'+port+'/get_access');
-      new_user.initializeAPI(request.query.code);
-      users[request.session.identifier] = new_user;
-      response.render('create-new-queue', {});
+      new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/get_access');
+      new_user.initializeAPI(request.query.code, function(){
+        request.session.identifier = new_user.user_id;
+        console.log(new_user.user_id);
+        users[request.session.identifier] = new_user;
+        response.render('create-new-queue', {});
+      });
     }
 });
 
@@ -96,8 +98,9 @@ app.post('/create-queue', function (request, response) {
     let name = sanitizeHtml(request.body['queue-name']);
 
     let admin_user = {}
-    admin_user.name = "admin";
-    admin_user.user_token = request.session.identifier;
+    admin_user.name = request.session.identifier;
+    admin_user.user_token = makeid(16);
+    request.session.user_token = admin_user.user_token;
     admin_user.socket_id = null;
 
     let new_queue = new Queue(name, queue_identifier, curr_user, admin_user, io);
@@ -116,10 +119,22 @@ app.post('/create-queue', function (request, response) {
 app.get('/party/:party_code', function (request, response) {
   let queue_identifier = request.params.party_code;
   let queue = queues[queue_identifier];
-  if(queue){
-    response.render('party-queue', queue);
-  }else{
+  if(!queue){
     response.redirect("/");
+  }else{
+    let admin_user = queue.admin;
+    if(request.session.identifier && request.session.user_token){
+      if(request.session.identifier == admin_user.name &&
+        request.session.user_token == admin_user.user_token){
+        response.render('party-queue-admin', queue);
+      }
+      else{
+        response.render('party-queue', queue);
+      }
+    }
+    else{
+      response.render('party-queue', queue);
+    }
   }
 });
 
@@ -164,6 +179,9 @@ app.get('/subscribe-callback', function (request, response) {
 
 app.get('/search/:queue/:term', function (request, response) {
   let queue = queues[request.params.queue];
+  if(!queue){
+    request.send("{name: 'Error on search!'}");
+  }
   let term = request.params.term;
   queue.owner.spotifyApi.searchTracks(term, {limit: 8}).then(
     function(data) {
@@ -187,12 +205,17 @@ io.on('connection', function(socket){
     let user_id = sanitizeHtml(data.user_id);
     let user_token = data.user_token;
     let queue_id = data.queue;
-
     let queue = queues[queue_id];
 
-    if(queue.users[user_id] && queue.users[user_id].token == user_token){
-      queue.users[user_id].socket_id = socket.id;
+    if(queue.users[user_id]){
+      if(queue.users[user_id].token == user_token){
+        queue.users[user_id].socket_id = socket.id;
+      }else{
+        console.log(user_token + " is wrong, should be " + queue.users[user_id].token);
+        io.to(socket.id).emit("wrong token", queue.songs);
+      }
     }else{
+      console.log("Creating user " + user_id + " with token " + user_token);
       let new_user = {}
       new_user.user_id = user_id;
       new_user.token = user_token;
@@ -212,10 +235,12 @@ io.on('connection', function(socket){
 
   socket.on('add song', function(data){
     let queue = queues[data.queue];
-    if(!queue){
+    let added_by = data.added_by;
+    let added_by_token = data.user_token;
+
+    if(!queue || !queue.users[added_by] || added_by_token != queue.users[added_by].token){
       return;
     }
-    let added_by = data.added_by;
 
     for(var song_index = 0; song_index<queue.songs.length; song_index++){
       let curr_song = queue.songs[song_index];

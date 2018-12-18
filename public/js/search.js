@@ -22,7 +22,8 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
      $cookies.put('user_id', name + "-" + makenumid(5));
      $cookies.put('user_token', makeid(16));
      $scope.user_id = $cookies.get('user_id');
-     socket.emit('im here', {queue: queue_id, user_id: $scope.user_id, user_token: $scope.user_token});
+     console.log($scope.user_id);
+     socket.emit('im here', {queue: queue_id, user_token: $cookies.get('user_token'), user_id: $scope.user_id});
    }
 
    $scope.addSong = function(song){
@@ -75,6 +76,14 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
 
    socket.on("song list", function(data){
      $scope.song_queue = data;
+   })
+
+   socket.on("wrong token", function(data){
+     $scope.song_queue = data;
+     $cookies.remove('user_id');
+     $cookies.remove('user_token');
+     alert("Invalid credentials! Please create a new user.");
+     $window.location.href = '/party/' + queue_id;
    })
 
    socket.on("queue info", function(data){

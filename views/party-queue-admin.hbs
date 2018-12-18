@@ -11,7 +11,7 @@
       <h2 class="header-title"><a href="/">PartyQueue</a></h2>
     </nav>
     <section class="queue">
-      <h1 class="queue-name">{{{name}}}</h1>
+      <h1 class="queue-name">{{{name}}} - Admin</h1>
 
       <div class="contain-queue">
         <div class="now-playing" ng-show="nowPlaying.name.length>0">
@@ -22,8 +22,11 @@
           </div>
 
           <div class="control-box">
-            <a href="#" class="pretty-button green" ng-show="!subscribers.includes(user_id)" ng-click="subscribe()">Connect queue with Spotify Account</a>
-            <a href="#" class="pretty-button" ng-show="subscribers.includes(user_id)" ng-click="unsubscribe()">Disconnect queue from Spotify Account</a>
+            <a class="control-button" ng-click="pause()"> <img src="/img/pause-icon.png" alt="Pause button"> </a>
+            <a class="control-button" ng-click="play()"><img src="/img/play-icon.png" alt="Play button"></a>
+            <a class="control-button" ng-click="next()"><img src="/img/next-icon.png" alt="Next song button"></a>
+            <br>
+            <a href="#" class="pretty-button" ng-click="remove()">Remove queue</a>
           </div>
 
         </div>
@@ -56,7 +59,7 @@
         <h2 ng-show="user_id.length>1" style="color:lightgrey;">Song queue:</h2>
         <div id="song-queue">
           <div class="song" ng-repeat="song in song_queue track by $index">
-            <a class="delete-button" ng-show="user_id == song.added_by" ng-click="deleteSong(song)"><img src="/img/delete-icon.png" alt="Delete song"></a>
+            <a class="delete-button" ng-click="deleteSong(song)"><img src="/img/delete-icon.png" alt="Delete song"></a>
             <div class="vote-input">
               <a class="vote-button" ng-click="upvote(song)"><img src="/img/upvote-icon.png" alt=""></a>
               [[[song.points]]]

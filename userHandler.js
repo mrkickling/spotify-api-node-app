@@ -5,8 +5,7 @@ require('dotenv').config();
 // Initializing a class definition
 module.exports = class User {
 
-  constructor(identifier, redirectUri) {
-    this.identifier = identifier;
+  constructor(redirectUri) {
     this.REDIRECT_URI = redirectUri;
     this.spotifyApi = new SpotifyWebApi({
       clientId : process.env.CLIENT_ID,
@@ -16,23 +15,33 @@ module.exports = class User {
   }
 
   // Adding a method to the constructor
-  initializeAPI(code) {
-    this.spotifyApi.authorizationCodeGrant(code).then(
+  initializeAPI(code, callback) {
+    this.spotifyApi.authorizationCodeGrant(code)
+    .then(
       function(data) {
-        console.log("Connected to user "+this.identifier+"'s spotify API");
+        console.log("Connected to users spotify API");
         // Set the access token on the API object to use it in later calls
         this.spotifyApi.setAccessToken(data.body['access_token']);
         this.spotifyApi.setRefreshToken(data.body['refresh_token']);
+        this.spotifyApi.getMe()
+        .then(function(data) {
+          this.user_id = data.body.id;
+          this.account_type = data.body.product;
+          console.log('Got user:', data.body);
+          callback(this.user_id);
+        }.bind(this), function(err) {
+          console.log('Something went wrong when getting users info!', err);
+        });
         setTimeout(this.refreshToken.bind(this), 5000);
       }.bind(this),
       function(err) {
         console.log('Something went wrong when authorizing user ' + this.identifier, err);
-      }
+      }.bind(this)
     );
   }
 
   refreshToken(){
-    if(this.spotifyApi==null){
+    if(!this.spotifyApi){
       return;
     }
     this.spotifyApi.refreshAccessToken().then(
@@ -41,13 +50,12 @@ module.exports = class User {
         // Save the access token so that it's used in future calls
         this.spotifyApi.setAccessToken(data.body['access_token']);
         this.expires_in = data.body['expires_in'];
-        setTimeout(this.refreshToken.bind(this), 100*this.expires_in);
+        setTimeout(this.refreshToken.bind(this), 200*this.expires_in);
       }.bind(this),
       function(err) {
         console.log('Could not refresh access token for ' + this.identifier, err);
-      }
+      }.bind(this)
     );
-
   }
 
   stop(){
