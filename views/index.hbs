@@ -15,13 +15,20 @@
       <a class="pretty-button" href="/get_access">Create party queue</a>
     </section>
 
+    {{#if not_logged_in}}
     <section class="index">
       <h2>Already have a queue?</h2>
       <p>
         Log in with your spotify account to access it!
       </p>
-      <a class="pretty-button green" href="/get_access">Log in to spotify</a>
+      <a class="pretty-button green" href="/login">Log in to spotify</a>
     </section>
+    {{else}}
+    <section class="index">
+      <h2>Logged in!</h2>
+      <a class="pretty-button" href="/logout">Log out</a>
+    </section>
+    {{/if}}
 
 
     <section class="public-queues-section">

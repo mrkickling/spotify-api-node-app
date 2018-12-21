@@ -32,8 +32,10 @@
           <div class="control-box" ng-hide="onMobile">
             <form action="/subscribe/{{{queue.id}}}" method="post">
               <input type="submit" class="pretty-button green" ng-show="!subscribers.includes(user_id)" value="Listen to queue in browser">
+              <br><span style="font-size:12px">Only works on desktop in newer browsers</span>
             </form>
             <a href="#" class="pretty-button" ng-show="subscribers.includes(user_id)" ng-click="unsubscribe()">Disconnect your account from queue</a>
+
           </div>
 
         </div>

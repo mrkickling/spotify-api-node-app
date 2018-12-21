@@ -65,35 +65,59 @@ spotifyApi.clientCredentialsGrant()
 // API REQUESTS
 app.get("/", function (request, response) {
   let admin_for = false;
+  let not_logged_in = true;
   if(request.session.user_id && users[request.session.user_id]){
     let user = users[request.session.user_id];
+    not_logged_in = false;
     console.log("User exists, adding info to frontpage");
     if(user && user.is_admin_for){
       admin_for = queues[user.is_admin_for];
     }
   }
-  response.render('index', {queues:queues, admin_for:admin_for});
+  response.render('index', {queues:queues, admin_for:admin_for, not_logged_in:not_logged_in});
+});
+
+app.get('/login', function (request, response) {
+    // your application requests authorization
+    if(!request.query.code){
+      var scope = 'user-read-private user-read-birthdate user-read-email user-modify-playback-state user-read-recently-played user-read-currently-playing user-read-playback-state playlist-modify-public playlist-modify-private user-top-read';
+      response.redirect('https://accounts.spotify.com/authorize?' +
+        querystring.stringify({
+          response_type: 'code',
+          client_id: process.env.CLIENT_ID,
+          scope: scope,
+          redirect_uri: 'http://'+process.env.HOST+':'+port+'/login',
+        }));
+    }else if(request.query.code){
+      new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/login');
+      new_user.initializeAPI(request.query.code, function(){
+        request.session.user_id = new_user.user_id;
+        if(users[new_user.user_id]){
+            request.session.user_token = users[new_user.user_id].user_token;
+            response.cookie('user_id', new_user.user_id, { path: '/party/' });
+            response.cookie('user_token', users[new_user.user_id].user_token, { path: '/party/' });
+            response.redirect('/');
+            return;
+          }else
+          if(!request.session.user_token){
+            request.session.user_token = makeid(16);
+          }
+          new_user.user_token = request.session.user_token;
+          console.log(new_user.user_id + " is new spotify account user");
+          users[request.session.user_id] = new_user;
+          response.redirect('/');
+      });
+    }
+});
+
+app.get('/logout', function (request, response) {
+  request.session.destroy();
+  response.clearCookie("user_id", { path: '/party/' });
+  response.clearCookie("user_token", { path: '/party/' });
+  response.redirect('/');
 });
 
 app.get('/get_access', function (request, response) {
-
-    if(request.session.user_id && request.session.user_token){
-      let user_id = request.session.user_id;
-      let user_token = request.session.user_token;
-      if(users[user_id] && users[user_id].user_token == user_token){
-        if(users[user_id].subscribed_to){
-          let error_msg = "You are already subscribed to a queue. Unsubscribe from that queue to administrate a new one. <a href='/party/" +users[user_id].subscribed_to+ "'>Go back to that queue</a>";
-          response.render('error-page', {error:error_msg});
-          return;
-        }
-        if(users[user_id].is_admin_for){
-          let error_msg = "You are already admin in a queue that you have to delete if you want to create a new one! <a href='/party/" +users[user_id].is_admin_for+ "'>Go back to that queue</a>.";
-          response.render('error-page', {error:error_msg});
-          return;
-        }
-      }
-    }
-
     // your application requests authorization
     if(!request.query.code){
       var scope = 'user-read-private user-read-birthdate user-read-email user-modify-playback-state user-read-recently-played user-read-currently-playing user-read-playback-state playlist-modify-public playlist-modify-private user-top-read';
@@ -110,39 +134,51 @@ app.get('/get_access', function (request, response) {
         request.session.user_id = new_user.user_id;
         if(users[new_user.user_id]){
           request.session.user_token = users[new_user.user_id].user_token;
-          if(users[new_user.user_id].is_admin_for){
-            response.cookie('user_id', new_user.user_id, { path: '/party/' });
-            response.cookie('user_token', users[new_user.user_id].user_token, { path: '/party/' });
-            response.redirect('/');
-            return;
-          }else{
-            response.render('create-new-queue', {});
-            return;
-          }
+          response.render('create-new-queue', {});
+          return;
         }else if(!request.session.user_token){
           request.session.user_token = makeid(16);
         }
         new_user.user_token = request.session.user_token;
         console.log(new_user.user_id + " is new spotify account user");
         users[request.session.user_id] = new_user;
-
         response.render('create-new-queue', {});
       });
     }
 });
 
 app.post('/create-queue', function (request, response) {
+  if(request.session.user_id && request.session.user_token){
+    let user_id = request.session.user_id;
+    let user_token = request.session.user_token;
+    if(users[user_id] && users[user_id].user_token == user_token){
+      if(users[user_id].subscribed_to){
+        let error_msg = "You are already subscribed to a queue. Unsubscribe from that queue to administrate a new one. <a href='/party/" +users[user_id].subscribed_to+ "'>Go back to that queue</a>";
+        response.render('error-page', {error:error_msg});
+        return;
+      }
+      if(users[user_id].is_admin_for){
+        let error_msg = "You are already admin in a queue that you have to delete if you want to create a new one! <a href='/party/" +users[user_id].is_admin_for+ "'>Go back to that queue</a>.";
+        response.render('error-page', {error:error_msg});
+        return;
+      }
+    }
+  }
+
   if(request.session.user_id){
     let queue_identifier = makeid(6);
     let curr_user = users[request.session.user_id];
     curr_user.is_admin_for = queue_identifier;
     let name = sanitizeHtml(request.body['queue-name']);
-    let is_public = sanitizeHtml(request.body['public']) && true;
+    let is_public = sanitizeHtml(request.body['public']);
+    console.log(is_public);
 
     let new_queue = new Queue(name, queue_identifier, curr_user, io);
     new_queue.track();
-    new_queue.is_public = is_public;
-
+    if(is_public == "public"){
+      new_queue.is_public = true;
+      console.log("The queue will be public.")
+    }
     queues[queue_identifier] = new_queue;
 
     response.cookie('user_id', curr_user.user_id, { path: '/party/' });
@@ -192,12 +228,12 @@ app.post('/subscribe/:party_code', function (request, response) {
 
   let user_id = sanitizeHtml(request.body['user_id']);
   let user_token = sanitizeHtml(request.body['user_token']);
+
   // Remove user from queue if exists
   queue.removeUser(user_id, user_token);
   delete users[user_id];
 
   request.session.subscribing_to = queue_identifier;
-  request.session.user_token = makeid(16);
   var scope = 'streaming user-read-private user-read-email user-modify-playback-state user-read-recently-played user-read-currently-playing user-read-playback-state playlist-modify-public playlist-modify-private user-top-read';
   response.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
@@ -213,20 +249,26 @@ app.get('/subscribe-callback', function (request, response){
   let queue_identifier = request.session.subscribing_to;
   let queue = queues[queue_identifier];
 
-  if(queue && request.query.code && request.session.user_token){
+  if(queue && request.query.code){
     let new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/subscribe-callback');
     new_user.initializeAPI(request.query.code, function(){
       request.session.user_id = new_user.user_id;
-      new_user.user_token = request.session.user_token;
-      console.log(new_user.user_id + " is new spotify account user - subscriber");
-
-      users[request.session.user_id] = new_user;
-
+      if(users[new_user.user_id]){
+          console.log(new_user.user_id + " is already a user, logging in");
+          request.session.user_token = users[new_user.user_id].user_token;
+          response.cookie('user_id', new_user.user_id, { path: '/party/' });
+          response.cookie('user_token', users[new_user.user_id].user_token, { path: '/party/' });
+        }else{
+          request.session.user_token = makeid(16);
+          new_user.user_token = request.session.user_token;
+          console.log(new_user.user_id + " is new spotify account user - subscriber");
+          users[request.session.user_id] = new_user;
+          response.cookie('user_id', new_user.user_id, { path: '/party/' });
+          response.cookie('user_token', new_user.user_token, { path: '/party/' });
+        }
       queue.addSubscriber(users[request.session.user_id])
-      response.cookie('user_id', new_user.user_id, { path: '/party/' });
-      response.cookie('user_token', new_user.user_token, { path: '/party/' });
-
       response.redirect('/party/' + queue_identifier);
+
     });
   }else{
     let error_msg = "Error subscribing! No queue found or no login found. <a href='party/"+ queue_identifier +"'>Go back to queue</a> ";
