@@ -75,7 +75,7 @@
         </div>
 
         <h2 ng-show="user_id.length>1" style="color:lightgrey;">Song queue:</h2>
-        <section class="queue-chat-container">
+        <section class="queue-chat-container" ng-show="user_id.length>1" >
           <div id="song-queue">
             <div class="song" ng-repeat="song in song_queue track by $index">
               <a class="delete-button" ng-show="user_id == song.added_by" ng-click="deleteSong(song)"><img src="/img/delete-icon.png" alt="Delete song"></a>
