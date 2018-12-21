@@ -3,6 +3,7 @@ var UserHandler = require("./userHandler.js");
 var Queue = require("./queueHandler.js");
 require('dotenv').config();
 
+const fs = require('fs');
 const express = require('express');
 const path = require('path');
 const port = process.env.PORT;
@@ -20,6 +21,26 @@ var queues = {};
 const app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+
+if(process.env.HOST != "localhost"){
+  // Certificate
+  const privateKey = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/privkey.pem', 'utf8');
+  const certificate = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/cert.pem', 'utf8');
+  const ca = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/chain.pem', 'utf8');
+
+  const credentials = {
+  	key: privateKey,
+  	cert: certificate,
+  	ca: ca
+  };
+
+  var https = require('https').Server(credentials, app);
+  io = require('socket.io')(https);
+
+  https.listen(443, () => {
+  	console.log('HTTPS Server running on port 443');
+  });
+}
 
 var sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
