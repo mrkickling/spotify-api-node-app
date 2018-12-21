@@ -21,11 +21,10 @@ body{
   color:lightgrey;
 }
 nav{
-  position:fixed;
   top:0;
   color:lightgrey;
   width:100%;
-  background:Green;
+  background:rgba(0, 0, 0, 0.4);
   overflow:auto;
   padding:10px;
   z-index:5;
@@ -64,7 +63,7 @@ section{
 section.index, section.new-queue{
   max-width:500px;
   margin:auto;
-  margin-top: 10%;
+  margin-top: 30px;
   background: rgba(0, 0, 0, 0.4);
   -moz-box-shadow:    0px 0px 6px 6px rgba(0,0,0,0.2);
   -webkit-box-shadow: 0px 0px 6px 6px rgba(0,0,0,0.2);

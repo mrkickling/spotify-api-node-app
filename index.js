@@ -134,7 +134,7 @@ app.get('/get_access', function (request, response) {
         request.session.user_id = new_user.user_id;
         if(users[new_user.user_id]){
           request.session.user_token = users[new_user.user_id].user_token;
-          response.render('create-new-queue', {});
+          response.redirect('/create-new-queue');
           return;
         }else if(!request.session.user_token){
           request.session.user_token = makeid(16);
@@ -142,9 +142,13 @@ app.get('/get_access', function (request, response) {
         new_user.user_token = request.session.user_token;
         console.log(new_user.user_id + " is new spotify account user");
         users[request.session.user_id] = new_user;
-        response.render('create-new-queue', {});
+        response.redirect('/create-new-queue');
       });
     }
+});
+
+app.get('/create-new-queue', function (request, response) {
+  response.render('create-new-queue', {});
 });
 
 app.post('/create-queue', function (request, response) {
