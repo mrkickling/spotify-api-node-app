@@ -495,6 +495,9 @@ function get_user(user_id, users_list){
 }
 
 function update_all_users_in_queue(queue){
+  io.to(queue.admin.socket_id).emit("now playing", {song:queue.nowPlaying, playing:queue.isPlaying});
+  io.to(queue.admin.socket_id).emit("song list", queue.songs);
+
   for (var user_id in queue.users) {
     io.to(queue.users[user_id].socket_id).emit("now playing", {song:queue.nowPlaying, playing:queue.isPlaying});
     io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
