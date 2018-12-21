@@ -112,6 +112,7 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
    socket.on("queue info", function(data){
      $scope.admin = data.admin;
      $scope.subscribers = data.subscribers;
+     $scope.num_users = data.num_users;
    })
 
    socket.on("now playing", function(data){

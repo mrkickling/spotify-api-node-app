@@ -383,7 +383,7 @@ io.on('connection', function(socket){
     }
 
     io.to(socket.id).emit("song list", queue.songs);
-    io.to(socket.id).emit("queue info", { admin: queue.admin.name, subscribers:subscriber_ids });
+    io.to(socket.id).emit("queue info", { admin: queue.admin.name, subscribers:subscriber_ids, num_users: queue.users.length });
     io.to(socket.id).emit("now playing", {song: queue.nowPlaying, playing: queue.isPlaying});
   });
 
