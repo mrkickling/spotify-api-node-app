@@ -111,7 +111,9 @@ app.get('/get_access', function (request, response) {
         if(users[new_user.user_id]){
           request.session.user_token = users[new_user.user_id].user_token;
           if(users[new_user.user_id].is_admin_for){
-            response.redirect('/party/' + users[new_user.user_id].is_admin_for);
+            response.cookie('user_id', new_user.user_id, { path: '/party/' });
+            response.cookie('user_token', curr_user.user_token, { path: '/party/' });
+            response.redirect('/');
             return;
           }else{
             response.render('create-new-queue', {});
