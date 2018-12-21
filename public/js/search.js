@@ -88,7 +88,6 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
      $cookies.remove('user_id', { path: '/party/' });
      $cookies.remove('user_token', { path: '/party/' });
      alert("Invalid credentials! Please create a new user.");
-     $window.location.href = '/party/' + queue_id;
    })
 
    socket.on("queue info", function(data){
