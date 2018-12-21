@@ -23,6 +23,15 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 if(process.env.HOST != "http://localhost:3000"){
+  function requireHTTPS(req, res, next) {
+    // The 'x-forwarded-proto' check is for Heroku
+    if (!req.secure && req.get('x-forwarded-proto') !== 'https' && process.env.NODE_ENV !== "development") {
+      return res.redirect('https://' + req.get('host') + req.url);
+    }
+    next();
+  }
+  app.use(requireHTTPS);
+
   // Certificate
   const privateKey = fs.readFileSync('/etc/letsencrypt/live/partyqueue.co/privkey.pem', 'utf8');
   const certificate = fs.readFileSync('/etc/letsencrypt/live/partyqueue.co/cert.pem', 'utf8');
@@ -41,6 +50,7 @@ if(process.env.HOST != "http://localhost:3000"){
   	console.log('HTTPS Server running on port 443');
   });
 }
+
 
 var sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
