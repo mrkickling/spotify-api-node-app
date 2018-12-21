@@ -29,7 +29,7 @@
             </span>
           </div>
 
-          <div class="control-box">
+          <div class="control-box" ng-hide="onMobile">
             <form action="/subscribe/{{{queue.id}}}" method="post">
               <input type="submit" class="pretty-button green" ng-show="!subscribers.includes(user_id)" value="Listen to queue in browser">
             </form>
@@ -43,14 +43,6 @@
           <div class="now-playing-info">
             <h3>Queue is inactive. </h3>
           </div>
-
-          <div class="control-box">
-            <form action="/subscribe/{{{id}}}" method="post">
-              <input type="submit" class="pretty-button green" ng-show="!subscribers.includes(user_id)" value="Listen to queue in browser">
-            </form>
-            <a href="#" class="pretty-button" ng-show="subscribers.includes(user_id)" ng-click="unsubscribe()">Disconnect your account from queue</a>
-          </div>
-
         </div>
 
 
