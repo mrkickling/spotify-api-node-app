@@ -112,7 +112,7 @@ app.get('/get_access', function (request, response) {
           request.session.user_token = users[new_user.user_id].user_token;
           if(users[new_user.user_id].is_admin_for){
             response.cookie('user_id', new_user.user_id, { path: '/party/' });
-            response.cookie('user_token', new_user.user_token, { path: '/party/' });
+            response.cookie('user_token', users[new_user.user_id].user_token, { path: '/party/' });
             response.redirect('/');
             return;
           }else{
