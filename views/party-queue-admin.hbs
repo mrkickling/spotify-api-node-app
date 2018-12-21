@@ -9,9 +9,12 @@
   <body ng-app="spotifyApiApp" ng-controller="SearchController" ng-cloak>
     <nav>
       <h2 class="header-title"><a href="/">PartyQueue</a></h2>
+      <span class="username" ng-show="user_id">
+        Logged in as [[[user_id]]]
+      </span>
     </nav>
     <section class="queue">
-      <h1 class="queue-name">{{{name}}} - Admin</h1>
+      <h1 class="queue-name">{{{queue.name}}} - Admin</h1>
 
       <div class="contain-queue">
         <div class="now-playing" ng-show="nowPlaying.name.length>0">
@@ -22,13 +25,23 @@
           </div>
 
           <div class="control-box">
-            <a class="control-button" ng-click="pause()"> <img src="/img/pause-icon.png" alt="Pause button"> </a>
-            <a class="control-button" ng-click="play()"><img src="/img/play-icon.png" alt="Play button"></a>
-            <a class="control-button" ng-click="next()"><img src="/img/next-icon.png" alt="Next song button"></a>
+            <a class="control-button" ng-click="pause()" ng-show="isPlaying"> <img src="/img/pause-icon.png" alt="Pause button"> </a>
+            <a class="control-button" ng-click="play()" ng-hide="isPlaying"><img src="/img/play-icon.png" alt="Play button"></a>
+            <a class="control-button" ng-click="next()" ng-hide="song_queue.length<1"><img src="/img/next-icon.png" alt="Next song button"></a>
             <br>
             <a href="#" class="pretty-button" ng-click="remove()">Remove queue</a>
           </div>
+        </div>
 
+        <div class="now-playing" ng-hide="nowPlaying">
+          <div class="now-playing-info">
+            <h3>Queue is inactive </h3>
+            Please open up your spotify app and start playing a song to activate the queue.
+          </div>
+
+          <div class="control-box">
+            <a href="#" class="pretty-button" ng-click="remove()">Remove queue</a>
+          </div>
         </div>
 
         <div class="search-form" ng-show="user_id.length>0">
@@ -77,16 +90,17 @@
             </div>
           </div>
         </div>
-
       </div>
     </section>
   </body>
   <script type="text/javascript">
-    var queue_id = "{{{id}}}";
+  var queue_id = "{{{queue.id}}}";
+  var admin = true;
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular-cookies.min.js"></script>
   <script src="/js/search.js"></script>
   <script src="/js/sockets.js"></script>
+  <script src="/js/spotify-player.js"></script>
 </html>

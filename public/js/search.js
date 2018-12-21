@@ -1,7 +1,7 @@
 var app = angular.module("spotifyApiApp", ['ngCookies']);
-
-app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 'socket', function($scope, $http, $cookies, $window, socket) {
-
+var previousPlayed = null;
+app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 'socket', 'webSDK', function($scope, $http, $cookies, $window, socket, webSDK) {
+  $scope.webPlayerActive = false;
   if($cookies.get('user_id') && $cookies.get('user_token')){
     $scope.user_id = $cookies.get('user_id');
     $scope.user_token = $cookies.get('user_token');
@@ -33,6 +33,7 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
 
    $scope.upvote = function(song){
      if(!song.upvotes.includes($scope.user_id)){
+       console.log("Upvoting!");
        socket.emit('upvote song', { queue: queue_id, song: song, user_id: $scope.user_id, user_token:$scope.user_token});
        $scope.focus=false;
      }
@@ -65,10 +66,6 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
      socket.emit('delete', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token});
    }
 
-   $scope.subscribe = function(){
-     $window.location.href = '/subscribe/' + queue_id + '/' + $scope.user_id;
-   }
-
    $scope.unsubscribe = function(){
      socket.emit('unsubscribe', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token});
      $window.location.href = '/party/' + queue_id;
@@ -76,6 +73,10 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
 
    socket.on("song list", function(data){
      $scope.song_queue = data;
+   })
+
+   socket.on("error", function(data){
+     alert(data);
    })
 
    socket.on("wrong token", function(data){
@@ -92,15 +93,32 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
    })
 
    socket.on("now playing", function(data){
+     console.log("Current track: " + data.song.name);
      $scope.nowPlaying = data.song;
      $scope.isPlaying = data.playing;
+     if(webSDK.ready() && !admin && $scope.subscribers.includes($scope.user_id)){
+       $scope.webPlayerActive = true;
+       if(previousPlayed != $scope.nowPlaying.id){
+         // If song changed from last iteration
+         console.log("Changing song");
+         webSDK.play($scope.nowPlaying.uri,  $scope.nowPlaying.progress_ms);
+       }else if(!webSDK.playing() && $scope.isPlaying){
+         // If song is playing but the SDK is not playing
+         console.log("Starting playing");
+         webSDK.play($scope.nowPlaying.uri,  $scope.nowPlaying.progress_ms);
+       }else if(webSDK.playing() && !$scope.isPlaying){
+         // If song is paused but SDK is playing
+         console.log("Paused");
+         webSDK.pause();
+       }
+     }
+     previousPlayed = $scope.nowPlaying.id;
    })
 
    socket.on("deleted", function(data){
      alert("Sorry, this queue was just deleted by the administrator!");
      $window.location.href = '/';
    })
-
 
 }]);
 

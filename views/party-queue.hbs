@@ -9,24 +9,50 @@
   <body ng-app="spotifyApiApp" ng-controller="SearchController" ng-cloak>
     <nav>
       <h2 class="header-title"><a href="/">PartyQueue</a></h2>
+      <span class="username" ng-show="user_id">
+        Logged in as [[[user_id]]]
+      </span>
     </nav>
     <section class="queue">
-      <h1 class="queue-name">{{{name}}}</h1>
+      <h1 class="queue-name">{{{queue.name}}}</h1>
 
       <div class="contain-queue">
-        <div class="now-playing" ng-show="nowPlaying.name.length>0">
+        <div class="now-playing" ng-show="nowPlaying">
           <img class="album-art-playing"ng-src="[[[ nowPlaying.album.images[1].url ]]]" alt="">
           <div class="now-playing-info">
             <h3>Now playing <span ng-hide="isPlaying">(paused)</span> </h3>
             [[[nowPlaying.name]]] -  [[[nowPlaying.artists[0].name]]]<br>
+            <span ng-show="subscribers.includes(user_id) && !webPlayerActive">
+              <img src="/img/loading.gif" width="30px" height="30px" alt="">
+              Loading music into browser …
+
+            </span>
           </div>
 
           <div class="control-box">
-            <a href="#" class="pretty-button green" ng-show="!subscribers.includes(user_id)" ng-click="subscribe()">Connect queue with Spotify Account</a>
-            <a href="#" class="pretty-button" ng-show="subscribers.includes(user_id)" ng-click="unsubscribe()">Disconnect queue from Spotify Account</a>
+            <form action="/subscribe/{{{queue.id}}}" method="post">
+              <input type="submit" class="pretty-button green" ng-show="!subscribers.includes(user_id)" value="Listen to queue in browser">
+            </form>
+            <a href="#" class="pretty-button" ng-show="subscribers.includes(user_id)" ng-click="unsubscribe()">Disconnect your account from queue</a>
           </div>
 
         </div>
+
+        <div class="now-playing" ng-hide="nowPlaying || !user_id">
+          <img class="album-art-playing"ng-src="[[[ nowPlaying.album.images[1].url ]]]" alt="">
+          <div class="now-playing-info">
+            <h3>Queue is inactive. </h3>
+          </div>
+
+          <div class="control-box">
+            <form action="/subscribe/{{{id}}}" method="post">
+              <input type="submit" class="pretty-button green" ng-show="!subscribers.includes(user_id)" value="Listen to queue in browser">
+            </form>
+            <a href="#" class="pretty-button" ng-show="subscribers.includes(user_id)" ng-click="unsubscribe()">Disconnect your account from queue</a>
+          </div>
+
+        </div>
+
 
         <div class="search-form" ng-show="user_id.length>0">
           <form class="" ng-submit="search()">
@@ -37,20 +63,21 @@
           </form>
           <div id="search-results" ng-show="focus && search_results.length>0">
             <div class="song" ng-repeat="song in search_results">
+              <button class="add-button" ng-click="addSong(song)" type="button" name="button"> <img src="/img/add-icon.png" alt=""> Add</button>
               <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
               <div class="song-info">
                 [[[song.name]]] - [[[song.artists[0].name]]]
               </div>
-              <button class="add-button" ng-click="addSong(song)" type="button" name="button"> <img src="/img/add-icon.png" alt=""> Add</button>
             </div>
           </div>
         </div>
 
         <div class="pick-name" ng-hide="user_id.length>0">
           Pick a username to be able to add songs!<br>
-          <input class="pretty-input" type="text" name="name-input" placeholder="Username" ng-init="input_username"ng-model="input_username">
-          <button class="pretty-button" type="button" name="button" ng-click="enterUsername(input_username)">Done</button>
-
+          <form ng-submit="enterUsername(input_username)">
+            <input class="pretty-input" type="text" name="name-input" placeholder="Username" ng-init="input_username"ng-model="input_username">
+            <input class="pretty-button" type="submit" name="button" value="Enter">
+          </form>
         </div>
 
         <h2 ng-show="user_id.length>1" style="color:lightgrey;">Song queue:</h2>
@@ -79,11 +106,16 @@
     </section>
   </body>
   <script type="text/javascript">
-    var queue_id = "{{{id}}}";
+    var queue_id = "{{{queue.id}}}";
+    var accessToken = "{{{access_token}}}";
+    var admin = false;
+
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular-cookies.min.js"></script>
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
   <script src="/js/search.js"></script>
   <script src="/js/sockets.js"></script>
+  <script src="/js/spotify-player.js"></script>
 </html>

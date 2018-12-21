@@ -6,6 +6,7 @@ require('dotenv').config();
 module.exports = class User {
 
   constructor(redirectUri) {
+    this.user_id = "unknown";
     this.REDIRECT_URI = redirectUri;
     this.spotifyApi = new SpotifyWebApi({
       clientId : process.env.CLIENT_ID,
@@ -27,7 +28,6 @@ module.exports = class User {
         .then(function(data) {
           this.user_id = data.body.id;
           this.account_type = data.body.product;
-          console.log('Got user:', data.body);
           callback(this.user_id);
         }.bind(this), function(err) {
           console.log('Something went wrong when getting users info!', err);
@@ -36,6 +36,7 @@ module.exports = class User {
       }.bind(this),
       function(err) {
         console.log('Something went wrong when authorizing user ' + this.identifier, err);
+        callback(this.user_id);
       }.bind(this)
     );
   }
@@ -59,7 +60,7 @@ module.exports = class User {
   }
 
   stop(){
-    this.spotifyApi = null;
+    this.is_admin_for = false;
   }
 }
 

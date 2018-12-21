@@ -28,11 +28,19 @@ nav{
   background:Green;
   overflow:auto;
   padding:10px;
+  z-index:5;
+
 }
 nav h2{
   margin:0;
   display:block;
   float:left;
+}
+
+nav .username{
+  float:right;
+  font-size:13px;
+  margin-top:5px;
 }
 .menu-item{
   float:left;
@@ -147,12 +155,12 @@ section.index, section.new-queue{
 /* For party queue page */
 #search-results{
   margin-left:-15px;
-  width:80%;
+  width:100%;
   background:rgba(255, 255, 255, 0.8);
   margin:auto;
   position:relative;
   padding:10px;
-  z-index:100;
+  z-index:3;
 }
 #search-results .song{
   margin:0;
@@ -234,6 +242,7 @@ section.index, section.new-queue{
 .now-playing-info{
   text-align:left;
   float:left;
+  font-size:15px;
   padding:10px;
   word-break: break-all;
 }
@@ -260,5 +269,16 @@ section.index, section.new-queue{
     float:none;
     margin:auto;
     text-align:center;
+  }
+  .now-playing-info{
+    text-align: center;
+    width:100%;
+  }
+  .now-playing .album-art-playing{
+    width:100px;
+    float:none;
+    margin:auto;
+    margin-top:10px;
+    display:block;
   }
 }
