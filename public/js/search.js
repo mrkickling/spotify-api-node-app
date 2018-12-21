@@ -87,6 +87,8 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
      $scope.song_queue = data;
      $cookies.remove('user_id', { path: '/party/' });
      $cookies.remove('user_token', { path: '/party/' });
+     $cookies.remove('user_id', { path: '/' });
+     $cookies.remove('user_token', { path: '/' });
      alert("Invalid credentials! Please create a new user.");
    })
 
