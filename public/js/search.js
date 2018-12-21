@@ -4,7 +4,7 @@ var previousPlayed = null;
 app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 'socket', 'webSDK', function($scope, $http, $cookies, $window, socket, webSDK) {
   $scope.webPlayerActive = false;
   $scope.onMobile = mobileCheck();
-  
+
   if($cookies.get('user_id') && $cookies.get('user_token')){
     $scope.user_id = $cookies.get('user_id');
     $scope.user_token = $cookies.get('user_token');
@@ -22,9 +22,10 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
      });
    }
    $scope.enterUsername = function(name){
-     $cookies.put('user_id', name + "-" + makenumid(5));
-     $cookies.put('user_token', makeid(16));
+     $cookies.put('user_id', name + "-" + makenumid(5), { path: '/party/' });
+     $cookies.put('user_token', makeid(16), { path: '/party/' });
      $scope.user_id = $cookies.get('user_id');
+     $scope.user_token = $cookies.get('user_token');
      console.log($scope.user_id);
      socket.emit('im here', {queue: queue_id, user_token: $cookies.get('user_token'), user_id: $scope.user_id});
    }

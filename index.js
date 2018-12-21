@@ -139,8 +139,8 @@ app.post('/create-queue', function (request, response) {
 
     queues[queue_identifier] = new_queue;
 
-    response.cookie('user_id', curr_user.user_id);
-    response.cookie('user_token', curr_user.user_token);
+    response.cookie('user_id', curr_user.user_id, { path: '/party/' });
+    response.cookie('user_token', curr_user.user_token, { path: '/party/' });
     response.redirect('party/' + queue_identifier);
   }else{
     response.redirect("/");
