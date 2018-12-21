@@ -45,7 +45,6 @@ module.exports = class Queue {
 
     this.admin.spotifyApi.getMyCurrentPlaybackState({})
     .then(function(data) {
-      console.log((new Date().toLocaleTimeString()) + ": Got current playback state for queue: " + this.name);
       this.isActive = data.body.device && data.body.device.is_active;
       this.isPlaying = data.body.is_playing;
       this.nowPlaying = data.body.item;

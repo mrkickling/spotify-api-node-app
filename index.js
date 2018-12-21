@@ -110,12 +110,16 @@ app.get('/get_access', function (request, response) {
         request.session.user_id = new_user.user_id;
         if(users[new_user.user_id]){
           request.session.user_token = users[new_user.user_id].user_token;
+          if(users[new_user.user_id].is_admin_for){
+            response.render('/', {queues:queues, admin_for:queues[users[new_user.user_id.is_admin_for]]});
+          }
         }else if(!request.session.user_token){
           request.session.user_token = makeid(16);
         }
         new_user.user_token = request.session.user_token;
         console.log(new_user.user_id + " is new spotify account user");
         users[request.session.user_id] = new_user;
+
         response.render('create-new-queue', {});
       });
     }
@@ -442,7 +446,6 @@ function get_user(user_id, users_list){
 
 function update_all_users_in_queue(queue){
   for (var user_id in queue.users) {
-    console.log("Sending playing now to" + queue.users[user_id]);
     io.to(queue.users[user_id].socket_id).emit("now playing", {song:queue.nowPlaying, playing:queue.isPlaying});
   }
 }
