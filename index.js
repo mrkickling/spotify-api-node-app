@@ -111,7 +111,7 @@ app.get('/get_access', function (request, response) {
         if(users[new_user.user_id]){
           request.session.user_token = users[new_user.user_id].user_token;
           if(users[new_user.user_id].is_admin_for){
-            response.render('/', {queues:queues, admin_for:queues[users[new_user.user_id.is_admin_for]]});
+            response.render('index', {queues:queues, admin_for:queues[users[new_user.user_id.is_admin_for]]});
           }
         }else if(!request.session.user_token){
           request.session.user_token = makeid(16);
