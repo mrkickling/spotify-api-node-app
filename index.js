@@ -22,7 +22,7 @@ const app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-if(process.env.HOST != "localhost"){
+if(process.env.HOST != "http://localhost"){
   // Certificate
   const privateKey = fs.readFileSync('/etc/letsencrypt/live/partyqueue.co/privkey.pem', 'utf8');
   const certificate = fs.readFileSync('/etc/letsencrypt/live/partyqueue.co/cert.pem', 'utf8');
@@ -107,10 +107,10 @@ app.get('/login', function (request, response) {
           response_type: 'code',
           client_id: process.env.CLIENT_ID,
           scope: scope,
-          redirect_uri: 'http://'+process.env.HOST+':'+port+'/login',
+          redirect_uri: process.env.HOST+':'+port+'/login',
         }));
     }else if(request.query.code){
-      new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/login');
+      new_user = new UserHandler(process.env.HOST+':'+port+'/login');
       new_user.initializeAPI(request.query.code, function(){
         request.session.user_id = new_user.user_id;
         if(users[new_user.user_id]){
@@ -147,10 +147,10 @@ app.get('/get_access', function (request, response) {
           response_type: 'code',
           client_id: process.env.CLIENT_ID,
           scope: scope,
-          redirect_uri: 'http://'+process.env.HOST+':'+port+'/get_access',
+          redirect_uri: process.env.HOST+':'+port+'/get_access',
         }));
     }else if(request.query.code){
-      new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/get_access');
+      new_user = new UserHandler(process.env.HOST+':'+port+'/get_access');
       new_user.initializeAPI(request.query.code, function(){
         request.session.user_id = new_user.user_id;
         if(users[new_user.user_id]){
@@ -265,7 +265,7 @@ app.post('/subscribe/:party_code', function (request, response) {
       response_type: 'code',
       client_id: process.env.CLIENT_ID,
       scope: scope,
-      redirect_uri: 'http://'+process.env.HOST+':'+port+'/subscribe-callback',
+      redirect_uri: process.env.HOST+':'+port+'/subscribe-callback',
       //state: state
     }));
 });
@@ -275,7 +275,7 @@ app.get('/subscribe-callback', function (request, response){
   let queue = queues[queue_identifier];
 
   if(queue && request.query.code){
-    let new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/subscribe-callback');
+    let new_user = new UserHandler(process.env.HOST+':'+port+'/subscribe-callback');
     new_user.initializeAPI(request.query.code, function(){
       request.session.user_id = new_user.user_id;
       if(users[new_user.user_id]){
@@ -354,7 +354,7 @@ io.on('connection', function(socket){
 
     }else{
       console.log("Creating user " + user_id + " with token " + user_token + " to queue " + queue.name);
-      let new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/subscribe-callback');
+      let new_user = new UserHandler(process.env.HOST+':'+port+'/subscribe-callback');
       new_user.user_id = user_id;
       new_user.user_token = user_token;
       new_user.socket_id = socket.id;
