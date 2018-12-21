@@ -81,7 +81,7 @@ module.exports = class Queue {
   }
 
   playNextInQueue(){
-    if(!this.admin){
+    if(!this || !this.admin){
       return;
     }
     let songToPlay = this.songs[0];

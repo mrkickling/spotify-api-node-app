@@ -64,7 +64,15 @@ spotifyApi.clientCredentialsGrant()
 
 // API REQUESTS
 app.get("/", function (request, response) {
-  response.render('index', {queues:queues});
+  let admin_for = false;
+  if(request.session.user_id && users[request.session.user_id]){
+    let user = users[request.session.user_id];
+    console.log("User exists, adding info to frontpage");
+    if(user && user.is_admin_for){
+      admin_for = queues[user.is_admin_for];
+    }
+  }
+  response.render('index', {queues:queues, admin_for:admin_for});
 });
 
 app.get('/get_access', function (request, response) {
@@ -100,7 +108,9 @@ app.get('/get_access', function (request, response) {
       new_user = new UserHandler('http://'+process.env.HOST+':'+port+'/get_access');
       new_user.initializeAPI(request.query.code, function(){
         request.session.user_id = new_user.user_id;
-        if(!request.session.user_token){
+        if(users[new_user.user_id]){
+          request.session.user_token = users[new_user.user_id].user_token;
+        }else if(!request.session.user_token){
           request.session.user_token = makeid(16);
         }
         new_user.user_token = request.session.user_token;
@@ -117,9 +127,11 @@ app.post('/create-queue', function (request, response) {
     let curr_user = users[request.session.user_id];
     curr_user.is_admin_for = queue_identifier;
     let name = sanitizeHtml(request.body['queue-name']);
+    let is_public = sanitizeHtml(request.body['public']) && true;
 
     let new_queue = new Queue(name, queue_identifier, curr_user, io);
     new_queue.track();
+    new_queue.is_public = is_public;
 
     queues[queue_identifier] = new_queue;
 

@@ -21,12 +21,27 @@
         <div class="public-queues-list-item">
           <ul>
             {{#each queues}}
+              {{#if this.is_public}}
                 <li><a href="/party/{{{this.id}}}">{{{this.name}}}</a></li>
+              {{/if}}
             {{/each}}
           </ul>
         </div>
       </div>
     </section>
+
+    {{#if admin_for}}
+    <section class="public-queues-section">
+      <div class="public-queues-list">
+        <h3>You are admin for queue</h3>
+        <div class="public-queues-list-item">
+          <ul>
+            <li><a href="/party/{{{admin_for.id}}}">{{{admin_for.name}}}</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    {{/if}}
 
   </body>
 </html>
