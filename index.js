@@ -448,6 +448,7 @@ io.on('connection', function(socket){
     }
   });
 
+
   socket.on('play', function(data){
     queue = queues[data.queue];
     if(socket_is_admin(data)){
@@ -517,6 +518,22 @@ io.on('connection', function(socket){
       update_all_users_in_queue(queue);
     }
   });
+
+  socket.on('chat message', function(data){
+    queue = queues[data.queue];
+    let user_id = sanitizeHtml(data.user_id);
+    let user_token = data.user_token;
+    let message = sanitizeHtml(data.message);
+    let upvoter_user = get_user(user_id, queue.users);
+    if(upvoter_user.user_token != user_token && !socket_is_admin(data)){
+      return;
+    }else{
+      for (var i in queue.users) {
+        io.to(queue.users[i].socket_id).emit("new chat message", {user_id:user_id, message:message});
+      }
+    }
+  });
+
 
 });
 

@@ -70,26 +70,40 @@
         </div>
 
         <h2 ng-show="user_id.length>1" style="color:lightgrey;">Song queue:</h2>
-        <div id="song-queue">
-          <div class="song" ng-repeat="song in song_queue track by $index">
-            <a class="delete-button" ng-click="deleteSong(song)"><img src="/img/delete-icon.png" alt="Delete song"></a>
-            <div class="vote-input">
-              <a class="vote-button" ng-click="upvote(song)"><img src="/img/upvote-icon.png" alt=""></a>
-              [[[song.points]]]
-              <a class="vote-button" ng-click="downvote(song)"><img src="/img/downvote-icon.png" alt=""></a>
+        <section class="queue-chat-container">
+          <div id="song-queue">
+            <div class="song" ng-repeat="song in song_queue track by $index">
+              <a class="delete-button" ng-show="user_id == song.added_by" ng-click="deleteSong(song)"><img src="/img/delete-icon.png" alt="Delete song"></a>
+              <div class="vote-input">
+                <a class="vote-button" ng-click="upvote(song)"><img src="/img/upvote-icon.png" alt=""></a>
+                [[[song.points]]]
+                <a class="vote-button" ng-click="downvote(song)"><img src="/img/downvote-icon.png" alt=""></a>
+              </div>
+              <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
+              <div class="song-info">
+                [[[song.name.substr(0, 35)]]] ... - [[[song.artists[0].name]]]<br>
+                <span style="color:grey;">Added by [[[song.added_by]]]</span>
+              </div>
             </div>
-            <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
-            <div class="song-info">
-              [[[song.name]]] - [[[song.artists[0].name]]]<br>
-              <span style="color:grey;">Added by [[[song.added_by]]]</span>
+            <div class="song" ng-show="song_queue.length<1">
+              <div class="song-info">
+                No songs in queue right now, why not add one?
+              </div>
             </div>
           </div>
-          <div class="song" ng-show="song_queue.length<1">
-            <div class="song-info">
-              No songs in queue right now, why not add one?
+          <div id="chat">
+            <div class="chat-content" scroll="scrollDownChat">
+              <h2 class="chat-header">Chat room</h2>
+              <span class="chat-message" ng-repeat="message in chat_messages track by $index">
+                <b>[[[message.user_id]]]</b>: [[[message.message]]]
+              </span>
             </div>
+            <form ng-submit="sendChatMessage(input-message)" method="post">
+              <input type="text" name="" value="" ng-model="input_message" placeholder="Write something in the chat">
+            </form>
           </div>
-        </div>
+        </section>
+
       </div>
     </section>
   </body>

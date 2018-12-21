@@ -4,6 +4,8 @@ var previousPlayed = null;
 app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 'socket', 'webSDK', function($scope, $http, $cookies, $window, socket, webSDK) {
   $scope.webPlayerActive = false;
   $scope.onMobile = mobileCheck();
+  $scope.chat_messages = [];
+  $scope.scrollDownChat = 0;
 
   if($cookies.get('user_id') && $cookies.get('user_token')){
     $scope.user_id = $cookies.get('user_id');
@@ -58,6 +60,13 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
      socket.emit('play', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token});
    }
 
+   $scope.sendChatMessage = function(){
+     if($scope.input_message.length>1){
+       socket.emit('chat message', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token, message:$scope.input_message});
+       $scope.input_message = "";
+     }
+   }
+
    $scope.pause = function(song){
      socket.emit('pause', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token});
    }
@@ -77,6 +86,11 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
 
    socket.on("song list", function(data){
      $scope.song_queue = data;
+   })
+
+   socket.on("new chat message", function(data){
+     $scope.chat_messages[$scope.chat_messages.length] = data;
+     $scope.scrollDownChat += 1;
    })
 
    socket.on("error", function(data){
@@ -131,6 +145,19 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
 app.config(function($interpolateProvider) {
   $interpolateProvider.startSymbol('[[[');
   $interpolateProvider.endSymbol(']]]');
+});
+
+app.directive('scroll', function($timeout) {
+  return {
+    restrict: 'A',
+    link: function(scope, element, attr) {
+      scope.$watchCollection(attr.scroll, function(newVal) {
+        $timeout(function() {
+         element[0].scrollTop = element[0].scrollHeight;
+        });
+      });
+    }
+  }
 });
 
 function makeid(length) {
