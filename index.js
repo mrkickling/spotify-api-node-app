@@ -415,7 +415,8 @@ io.on('connection', function(socket){
     if(upvoter_user.user_token != user_token && !socket_is_admin(data)){
       return;
     }else{
-      queue.upvoteSong(data.song.id, upvoter_user)
+      queue.upvoteSong(data.song.id, upvoter_user);
+      update_all_users_in_queue(queue);
     }
   });
 
@@ -429,7 +430,8 @@ io.on('connection', function(socket){
     if(downvoter_user.user_token != user_token && !socket_is_admin(data)){
       return;
     }else{
-      queue.downvoteSong(data.song.id, downvoter_user)
+      queue.downvoteSong(data.song.id, downvoter_user);
+      update_all_users_in_queue(queue);
     }
   });
 
@@ -447,6 +449,7 @@ function get_user(user_id, users_list){
 function update_all_users_in_queue(queue){
   for (var user_id in queue.users) {
     io.to(queue.users[user_id].socket_id).emit("now playing", {song:queue.nowPlaying, playing:queue.isPlaying});
+    io.to(queue.users[user_id].socket_id).emit("song list", queue.songs);
   }
 }
 
