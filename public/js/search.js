@@ -11,7 +11,7 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
     $scope.user_id = $cookies.get('user_id');
     $scope.user_token = $cookies.get('user_token');
     socket.emit('im here', {queue: queue_id, user_id: $scope.user_id, user_token: $scope.user_token});
-    socket.emit('chat message', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token, message:"Joined chat"});
+    socket.emit('chat message', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token, message:"Joined chat room"});
   }
 
   $scope.search = function(){
