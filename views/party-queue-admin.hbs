@@ -47,7 +47,7 @@
         <div class="search-form" ng-show="user_id.length>0">
           <form class="" ng-submit="search()">
             Add a song to queue:
-            <input class="pretty-input" ng-focus="focus=true" type="text" id="search-input" name="search-input" placeholder="Song name" ng-model="search_input">
+            <input class="pretty-input" ng-focus="focus=true" ng-blur="hideResults()" type="text" id="search-input" name="search-input" placeholder="Song name" ng-model="search_input">
             <a ng-show="focus" name="button" ng-click="focus=false"> <img class="close-dropdown-img" src="/img/icon-exit.png" alt="Exit"></a>
 
           </form>

@@ -14,6 +14,14 @@ app.controller("SearchController", ['$scope', '$http', '$cookies', '$window', 's
     socket.emit('chat message', { queue: queue_id, user_id: $scope.user_id, user_token:$scope.user_token, message:"Joined chat room"});
   }
 
+  $scope.hideResults = function(){
+    setTimeout(function () {
+      $scope.$apply(function () {
+        $scope.focus=false;
+      });
+    }.bind(), 200);
+  }
+
   $scope.search = function(){
      $http({method: "GET", url: "/search/" + queue_id + "/" + $scope.search_input}).
        then(function(response) {
