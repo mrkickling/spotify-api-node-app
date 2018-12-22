@@ -135,13 +135,14 @@ section.main{
 .queue-name{
   display:block;
   width:100%;
+  background:rgb(30, 30, 30);
   padding:10px;
   font-size:30px;
   margin:0;
 }
 .contain-queue{
   overflow:auto;
-  width:80%;
+  width:100%;
   max-width: 1000px;
   margin:auto;
   margin-bottom:20px;
@@ -380,6 +381,7 @@ section.main{
     width:100%;
   }
   #chat{
+    margin-top:10px;
     width:100%;
   }
   .left-column{
@@ -393,7 +395,11 @@ section.main{
     margin:0;
   }
   #wrapper{
+    margin:0;
     width:100%;
+  }
+  section{
+    margin:0;
   }
   section.main{
     padding:20px;
@@ -403,6 +409,10 @@ section.main{
   }
   nav h2{
     font-size:20px;
+  }
+  nav .inner-wrapper{
+    width:100%;
+    margin:auto;
   }
 
 }
