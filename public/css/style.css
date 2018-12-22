@@ -272,7 +272,7 @@ section.main{
 }
 .song{
   color:white;
-  background:#05386B;
+  background:rgba(0, 0, 0, 0.4);
   margin-top:5px;
   overflow:auto;
   min-height:70px;
@@ -302,7 +302,7 @@ section.main{
   color:white;
   width:100%;
   overflow:auto;
-  background:#05386B;
+  background:rgba(0, 0, 0, 0.4);
 
   -moz-box-shadow:    3px 3px 5px 6px rgba(0,0,0,0.1);
   -webkit-box-shadow: 3px 3px 5px 6px rgba(0,0,0,0.1);
