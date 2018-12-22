@@ -202,20 +202,26 @@ section.main{
   margin:0;
   background: rgb(40, 40, 40);
   border-top:1px solid black;
-  color:black;
+  color:white;
 }
 
 #song-queue{
   width:70%;
   float:left;
+  overflow:auto;
 }
+.queue-header{
+  background:black;
+  display:block;
+  margin:0;
+}
+
 #chat{
   width:29.5%;
   margin-left:0.5%;
   background:white;
   float:left;
   height:350px;
-  margin-top:5px;
   position:relative;
   padding-bottom:25px;
   padding-top:40px;
@@ -300,6 +306,7 @@ section.main{
   text-align: left;
   float:left;
   padding:10px;
+  color:white;
 }
 .delete-button{
   float:right;

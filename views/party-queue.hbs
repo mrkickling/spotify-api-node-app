@@ -64,7 +64,8 @@
               <button class="add-button" ng-click="addSong(song)" type="button" name="button"> <img src="/img/add-icon.png" alt=""> Add</button>
               <img ng-hide="onMobile" class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
               <div class="song-info">
-                [[[song.name]]] - [[[song.artists[0].name]]]
+                [[[song.name]]]
+                <br>[[[song.artists[0].name]]]
               </div>
             </div>
           </div>
@@ -78,9 +79,9 @@
           </form>
         </div>
 
-        <h2 ng-show="user_id.length>1" style="color:lightgrey;">Song queue:</h2>
         <section class="queue-chat-container" ng-show="user_id.length>1" >
           <div id="song-queue">
+            <h2 class="queue-header" ng-show="user_id.length>1">Song queue:</h2>
             <div class="song" ng-repeat="song in song_queue track by $index">
               <a class="delete-button" ng-show="user_id == song.added_by" ng-click="deleteSong(song)"><img src="/img/delete-icon.png" alt="Delete song"></a>
               <div class="vote-input">
