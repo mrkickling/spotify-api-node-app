@@ -6,6 +6,7 @@ require('dotenv').config();
 const fs = require('fs');
 const express = require('express');
 const path = require('path');
+const cookie = require('cookie');
 const port = process.env.PORT;
 const querystring = require('querystring');
 const bcrypt = require('bcrypt');
@@ -344,10 +345,14 @@ io.on('connection', function(socket){
       return;
     }
 
+    socket.queue = queue_id;
+    socket.user_id = user_id;
+
     if(users[user_id]){
       if(users[user_id].user_token == user_token){
         console.log("Adding user " + user_id + " with token " + user_token + " to queue " + queue.name);
         users[user_id].socket_id = socket.id;
+        users[user_id].queue_id = queue_id;
         if(get_user(user_id, queue.users)){
           for(i in queue.users){
             if(queue.users[i].user_id == user_id){
@@ -530,8 +535,31 @@ io.on('connection', function(socket){
     }else{
       for (var i in queue.users) {
         io.to(queue.users[i].socket_id).emit("new chat message", {user_id:user_id, message:message});
+        io.to(queue.users[i].socket_id).emit("queue info", { admin: queue.admin.name, subscribers:subscriber_ids, num_users: queue.users.length });
       }
     }
+  });
+
+  socket.on('disconnect', function() {
+    console.log(socket.queue);
+    let queue = queues[socket.queue];
+
+    if(!queue){
+      console.log("No queue");
+      return;
+    }
+
+    for (var i in queue.users) {
+      if(queue.users[i].user_id == socket.user_id){
+        console.log("Deleted user ");
+        queue.users.splice(i, 1);
+      }
+    }
+    for (var i in queue.users) {
+      io.to(queue.users[i].socket_id).emit("new chat message", {user_id:socket.user_id, message:"Left chat room"});
+      io.to(queue.users[i].socket_id).emit("queue info", { admin: queue.admin.name, subscribers:subscriber_ids, num_users: queue.users.length });
+    }
+
   });
 
 
