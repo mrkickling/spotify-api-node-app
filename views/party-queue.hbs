@@ -51,14 +51,14 @@
         <div class="search-form" ng-show="user_id.length>0">
           <form class="" ng-submit="search()">
             Add a song to queue:
-            <input class="pretty-input" ng-focus="focus=true" type="text" id="search-input" name="search-input" placeholder="Song name" ng-model="search_input">
+            <input class="pretty-input" ng-focus="focus=true" ng-blur="hideResults()" type="text" id="search-input" name="search-input" placeholder="Song name" ng-model="search_input">
             <a ng-show="focus" name="button" ng-click="focus=false"> <img class="close-dropdown-img" src="/img/icon-exit.png" alt="Exit"></a>
 
           </form>
           <div id="search-results" ng-show="focus && search_results.length>0">
             <div class="song" ng-repeat="song in search_results">
               <button class="add-button" ng-click="addSong(song)" type="button" name="button"> <img src="/img/add-icon.png" alt=""> Add</button>
-              <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
+              <img ng-hide="onMobile" class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
               <div class="song-info">
                 [[[song.name]]] - [[[song.artists[0].name]]]
               </div>
@@ -84,7 +84,7 @@
                 [[[song.points]]]
                 <a class="vote-button" ng-click="downvote(song)"><img src="/img/downvote-icon.png" alt=""></a>
               </div>
-              <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
+              <img ng-hide="onMobile" class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
               <div class="song-info">
                 [[[song.name.substr(0, 35)]]] ... - [[[song.artists[0].name]]]<br>
                 <span style="color:grey;">Added by [[[song.added_by]]]</span>

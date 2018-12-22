@@ -53,7 +53,7 @@
           </form>
           <div id="search-results" ng-show="focus && search_results.length>0">
             <div class="song" ng-repeat="song in search_results">
-              <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
+              <img ng-hide="onMobile" class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
               <div class="song-info">
                 [[[song.name]]] - [[[song.artists[0].name]]]
               </div>
@@ -79,7 +79,7 @@
                 [[[song.points]]]
                 <a class="vote-button" ng-click="downvote(song)"><img src="/img/downvote-icon.png" alt=""></a>
               </div>
-              <img class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
+              <img ng-hide="onMobile" class="cover-img" ng-src="[[[ song.album.images[2].url ]]]" alt="">
               <div class="song-info">
                 [[[song.name.substr(0, 35)]]] ... - [[[song.artists[0].name]]]<br>
                 <span style="color:grey;">Added by [[[song.added_by]]]</span>
