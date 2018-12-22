@@ -8,11 +8,17 @@
   </head>
   <body>
     <nav>
-      <h2 class="header-title"><a href="/">PartyQueue</a></h2>
+      <div class="inner-wrapper">
+        <img class="logo" src="/img/logo.png" alt="">
+        <h2 class="header-title"><a href="/">PartyQueue.co</a></h2>
+      </div>
     </nav>
-    
+
     <section class="new-queue">
       <h2>Create a new queue</h2>
+      <p>
+        Please make sure to have your spotify app running music before clicking "submit"
+      </p>
       <form class="" action="/create-queue" method="post">
         <input class="pretty-input" type="text" name="queue-name" placeholder="Name of queue" value=""><br>
         <br><input type="checkbox" name="public" value="public" id="public"> <label for="public">Make queue public (anyone can find it)</label>

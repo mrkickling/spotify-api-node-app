@@ -8,11 +8,15 @@
   </head>
   <body ng-app="spotifyApiApp" ng-controller="SearchController" ng-cloak>
     <nav>
-      <h2 class="header-title"><a href="/">PartyQueue</a></h2>
-      <span class="username" ng-show="user_id">
-        Logged in as [[[user_id]]]
-      </span>
+      <div class="inner-wrapper">
+        <img class="logo" src="/img/logo.png" alt="">
+        <h2 class="header-title"><a href="/">PartyQueue</a></h2>
+        <span class="username" ng-show="user_id">
+          Logged in as [[[user_id]]]
+        </span>
+      </div>
     </nav>
+
     <section class="queue">
       <h1 class="queue-name">{{{queue.name}}}</h1>
 

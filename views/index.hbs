@@ -8,7 +8,10 @@
   </head>
   <body>
     <nav>
-      <h2 class="header-title"><a href="/">PartyQueue</a></h2>
+      <div class="inner-wrapper">
+        <img class="logo" src="/img/logo.png" alt="">
+        <h2 class="header-title"><a href="/">PartyQueue.co</a></h2>
+      </div>
     </nav>
 
     <div id="wrapper">
@@ -36,6 +39,19 @@
           {{/if}}
         </section>
 
+        {{#if admin_for}}
+        <section class="public-queues-section">
+          <div class="public-queues-list">
+            <h3>You are admin for queue</h3>
+            <div class="public-queues-list-item">
+              <ul style="padding:0">
+                <li style="list-style:none;"><a style="color:black;" href="/party/{{{admin_for.id}}}">{{{admin_for.name}}}</a></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        {{/if}}
+
         <section class="public-queues-section">
           <div class="public-queues-list">
             <h3>Public queues</h3>
@@ -50,20 +66,6 @@
             </div>
           </div>
         </section>
-
-        {{#if admin_for}}
-        <section class="public-queues-section">
-          <div class="public-queues-list">
-            <h3>You are admin for queue</h3>
-            <div class="public-queues-list-item">
-              <ul style="padding:0">
-                <li style="list-style:none;"><a style="color:black;" href="/party/{{{admin_for.id}}}">{{{admin_for.name}}}</a></li>
-              </ul>
-            </div>
-          </div>
-        </section>
-        {{/if}}
-
 
       </aside>
 
@@ -86,7 +88,7 @@
 
          <h3 style="color:lightgrey;">What are the requirements to create a queue?</h3>
          <p>
-           You need a Spotify Premium account and a active device where music is being played.
+           You need a Spotify Premium account and an active device where music is being played.
         </p>
 
 
